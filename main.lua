@@ -42,24 +42,43 @@ local obstacles = {}
 
 -- TODO: move wall & obstacle stuff to arena.lua
 
+local function triord_to_string(triord)
+      return table.concat(triord, ",")
+end
+
+local function triords_to_wall_string(triord1, triord2)
+   return triord_to_string(triord1) .. ";" .. triord_to_string(triord2)
+end
+
+local function string_to_triord(triord_string)
+   local _, _, h, f, b = string.find(triord_string, "(.+),(.+),(.+)")
+   return { h, f, b }
+end
+
+local function wall_string_to_triords(wall_string)
+   local _, _, h1, f1, b1, h2, f2, b2 =
+      string.find(wall_string, "(.+),(.+),(.+);(.+),(.+),(.+)")
+   return { { h1, f1, b1 }, { h2, f2, b2 } }
+
+end
+
 local function add_wall(triord1, triord2)
-   walls[table.concat(triord1,",") .. ";" ..  table.concat(triord2, ",")] = true
-   walls[table.concat(triord2,",") .. ";" ..  table.concat(triord1, ",")] = true
+   walls[triords_to_wall_string(triord1, triord2)] = true
+   walls[triords_to_wall_string(triord2, triord1)] = true
 end
 
 local function check_wall(triord1, triord2)
-   return walls[table.concat(triord1,",") .. ";" ..  table.concat(triord2, ",")] or false
+   return walls[triords_to_wall_string(triord1, triord2)] or false
 end
 
 local function wall_to_line(wall_string)
-   local _, _, h1, f1, b1, h2, f2, b2 =
-      string.find(wall_string, "(.+),(.+),(.+);(.+),(.+),(.+)")
-   return arena.get_wall_line({ h1, f1, b1 }, { h2, f2, b2 })
+   local triords = wall_string_to_triords(wall_string)
+   return arena.get_wall_line(triords[1], triords[2])
 end
 
 local function obstacle_to_vertices(obstacle_string)
-   local _, _, h, f, b = string.find(obstacle_string, "(.+),(.+),(.+)")
-   return arena.get_vertices(h, f, b)
+   local triord = string_to_triord(obstacle_string)
+   return arena.get_vertices(triord[1], triord[2], triord[3])
 end
 
 local function check_obstacle(triord)
@@ -192,10 +211,6 @@ function love.mousepressed(x, y, button, istouch, presses)
    local left = get_left()
    local right = get_right()
    local behind = get_behind()
-
-   local function triord_to_string(triord)
-      return triord[1] .. "," .. triord[2] .. "," .. triord[3]
-   end
 
    local new_dir = player_dir
 
