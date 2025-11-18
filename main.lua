@@ -37,6 +37,8 @@ local dirs = {
 local triangles = {}
 local player_pos = { 1, 1, 1 }
 local player_dir = dirs.h
+local spinner_pos = { 4, -2, 2 }
+local spinner_dir = dirs.h
 local walls = {}
 local obstacles = {}
 
@@ -99,6 +101,16 @@ local function get_left()
       (player_dir + 1) % 3
    )
 end
+
+local function get_left_better(triord, dir)
+   return arena.get_adjacent(
+      triord[1],
+      triord[2],
+      triord[3],
+      (dir + 1) % 3
+   )
+end
+
 
 local function get_right()
    return arena.get_adjacent(
@@ -176,6 +188,9 @@ function love.keypressed(key)
    then
       player_pos = moving_to
       player_dir = new_dir
+
+      spinner_pos = get_left_better(spinner_pos, spinner_dir)
+      spinner_dir = (spinner_dir - 1) % 3
    end
 
    -- Put debug info here.
@@ -329,6 +344,35 @@ function love.draw()
    gfx.line(look_line)
 
    -- Draw a white point where the player is looking
+
+   gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
+
+   -- Draw a "spinner" "enemy"
+
+   local sc =
+      arena.get_centre(spinner_pos[1], spinner_pos[2], spinner_pos[3])
+
+   -- Draw a circle where the spinner is
+
+   gfx.setColor(1, 0, 0)
+   gfx.circle("fill", sc[1], sc[2], arena.side/10)
+
+   -- Draw a line from the circle to where the spinner is looking
+
+   if spinner_dir == dirs.h then
+      looking_at =
+         arena.get_h_vertex(spinner_pos[1], spinner_pos[2], spinner_pos[3])
+   elseif spinner_dir == dirs.f then
+      looking_at =
+         arena.get_f_vertex(spinner_pos[1], spinner_pos[2], spinner_pos[3])
+   elseif spinner_dir == dirs.b then
+      looking_at =
+         arena.get_b_vertex(spinner_pos[1], spinner_pos[2], spinner_pos[3])
+   end
+   look_line = { sc[1], sc[2], looking_at[1], looking_at[2] }
+   gfx.line(look_line)
+
+   -- Draw a dot where the spinner is looking
 
    gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
 
