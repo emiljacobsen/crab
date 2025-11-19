@@ -24,7 +24,6 @@ local width = gfx.getWidth()
 local height = gfx.getHeight()
 local font = gfx.newFont("fonts/gerhaus.ttf", 20)
 
-local sqrt2 = math.sqrt(2)
 local sqrt3 = math.sqrt(3)
 
 local side_number = 3
