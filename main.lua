@@ -3,15 +3,12 @@
 -- - The arena is hexagonal.
 -- - The `side_number` is the number of triangles
 --   sharing a side with a particular side of the arena.
--- - Can populate the triangle collection row-wise,
---   with `side_number` × 2 rows,
---   and `side_number` × 2 + 1 + 2 * (r - 1)
---   triangles in the rth row.
 
 -- Imports
 
 local arena = require "arena"
 local grid = require "grid"
+local str = require "structures"
 
 -- Shorthands:
 
@@ -28,68 +25,11 @@ local sqrt3 = math.sqrt(3)
 
 local side_number = 3
 
-local dirs = {
-   h = 0,
-   f = 1,
-   b = 2
-}
-
 local triangles = {}
 local player_pos = { 1, 1, 1 }
-local player_dir = dirs.h
+local player_dir = grid.dirs.h
 local spinner_pos = { 4, -2, 2 }
-local spinner_dir = dirs.h
-local walls = {}
-local obstacles = {}
-
--- TODO: move wall & obstacle stuff to arena.lua
-
-local function triord_to_string(triord)
-      return table.concat(triord, ",")
-end
-
-local function triords_to_wall_string(triord1, triord2)
-   return triord_to_string(triord1) .. ";" .. triord_to_string(triord2)
-end
-
-local function string_to_triord(triord_string)
-   local _, _, h, f, b = string.find(triord_string, "(.+),(.+),(.+)")
-   return { h, f, b }
-end
-
-local function wall_string_to_triords(wall_string)
-   local _, _, h1, f1, b1, h2, f2, b2 =
-      string.find(wall_string, "(.+),(.+),(.+);(.+),(.+),(.+)")
-   return { { h1, f1, b1 }, { h2, f2, b2 } }
-
-end
-
-local function add_wall(triord1, triord2)
-   walls[triords_to_wall_string(triord1, triord2)] = true
-   walls[triords_to_wall_string(triord2, triord1)] = true
-end
-
-local function check_wall(triord1, triord2)
-   return walls[triords_to_wall_string(triord1, triord2)] or false
-end
-
-local function wall_to_line(wall_string)
-   local triords = wall_string_to_triords(wall_string)
-   return arena.get_wall_line(triords[1], triords[2])
-end
-
-local function obstacle_to_vertices(obstacle_string)
-   local triord = string_to_triord(obstacle_string)
-   return arena.get_vertices(triord[1], triord[2], triord[3])
-end
-
-local function check_obstacle(triord)
-   return obstacles[table.concat(triord, ",")] or false
-end
-
-local function add_obstacle(triord)
-   obstacles[table.concat(triord, ",")] = true
-end
+local spinner_dir = grid.dirs.h
 
 -- Runs on startup: 
 function love.load()
@@ -99,12 +39,12 @@ function love.load()
    arena.setup(grid, { 0, 0 + 40 }, { width, height + 40 })
    triangles = arena.get_all_triangle_vertices()
 
-   add_wall({1, 1, 1}, {2, 1, 1})
-   add_wall({1, 1, 2}, {1, 0, 2})
-   add_wall({4,-1,1}, {4,-2,1})
-   add_wall({4,-1,0}, {4,0,0})
-   add_wall({3,-1,1},{3,0,1})
-   add_obstacle({3,-2,2})
+   str.add_wall({1, 1, 1}, {2, 1, 1})
+   str.add_wall({1, 1, 2}, {1, 0, 2})
+   str.add_wall({4,-1,1}, {4,-2,1})
+   str.add_wall({4,-1,0}, {4,0,0})
+   str.add_wall({3,-1,1},{3,0,1})
+   str.add_obstacle({3,-2,2})
 end
 
 -- Runs every frame:
@@ -128,8 +68,8 @@ function love.keypressed(key)
    end
 
    if moving_to ~= nil
-      and not check_wall(player_pos, moving_to)
-      and not check_obstacle(moving_to)
+      and not str.check_wall(player_pos, moving_to)
+      and not str.check_obstacle(moving_to)
    then
       player_pos = moving_to
       player_dir = new_dir
@@ -174,6 +114,8 @@ function love.mousepressed(x, y, button, istouch, presses)
 
    local new_dir = player_dir
 
+   -- TODO: this string representation is now considered local to structures.lua
+   -- Something has to change
    if tristring == triord_to_string(left) then
       moving_to = left
       new_dir = (player_dir - 1) % 3
@@ -185,8 +127,8 @@ function love.mousepressed(x, y, button, istouch, presses)
    end
 
    if moving_to ~= nil and
-      not check_obstacle(moving_to) and
-      not check_wall(player_pos, moving_to)
+      not str.check_obstacle(moving_to) and
+      not str.check_wall(player_pos, moving_to)
    then
       player_pos = moving_to
       player_dir = new_dir
@@ -220,8 +162,8 @@ function love.draw()
    gfx.setColor(1, 0, 0)
    adjacent = grid.get_left(player_pos, player_dir)
    adj_centre = arena.get_centre(adjacent[1], adjacent[2], adjacent[3])
-   if not check_wall(player_pos, adjacent)
-      and not check_obstacle(adjacent)
+   if not str.check_wall(player_pos, adjacent)
+      and not str.check_obstacle(adjacent)
    then
       gfx.circle("fill", adj_centre[1], adj_centre[2], arena.diametre / 12)
    end
@@ -229,8 +171,8 @@ function love.draw()
    gfx.setColor(0, 1, 0)
    adjacent = grid.get_right(player_pos, player_dir)
    adj_centre = arena.get_centre(adjacent[1], adjacent[2], adjacent[3])
-   if not check_wall(player_pos, adjacent)
-      and not check_obstacle(adjacent)
+   if not str.check_wall(player_pos, adjacent)
+      and not str.check_obstacle(adjacent)
    then
       gfx.circle("fill", adj_centre[1], adj_centre[2], arena.diametre / 12)
    end
@@ -238,8 +180,8 @@ function love.draw()
    gfx.setColor(1, 1, 0)
    adjacent = grid.get_behind(player_pos, player_dir)
    adj_centre = arena.get_centre(adjacent[1], adjacent[2], adjacent[3])
-   if not check_wall(player_pos, adjacent)
-      and not check_obstacle(adjacent)
+   if not str.check_wall(player_pos, adjacent)
+      and not str.check_obstacle(adjacent)
    then
       gfx.circle("fill", adj_centre[1], adj_centre[2], arena.diametre / 12)
    end
@@ -248,21 +190,17 @@ function love.draw()
 
    gfx.setColor(1, 1, 1)
    gfx.setLineWidth(5)
-   for wall_string, maybe in pairs(walls) do
-      if maybe then
-         local line = wall_to_line(wall_string)
-         gfx.line(line[1], line[2], line[3], line[4])
-      end
+   for _, wall_pair in ipairs(str.get_walls()) do
+      local line = arena.get_wall_line(wall_pair[1], wall_pair[2])
+      gfx.line(line[1], line[2], line[3], line[4])
    end
    gfx.setLineWidth(1)
 
    -- Draw obstacles
 
    gfx.setColor(1, 1, 1)
-   for obstacle_string, maybe in pairs(obstacles) do
-      if maybe then
-         gfx.polygon("fill", obstacle_to_vertices(obstacle_string))
-      end
+   for _, triord in ipairs(str.get_obstacles()) do
+      gfx.polygon("fill", arena.get_vertices(triord[1], triord[2], triord[3]))
    end
 
    -- Draw the player
@@ -278,13 +216,13 @@ function love.draw()
    -- Draw a line from the circle to where the player is looking
 
    local looking_at = {}
-   if player_dir == dirs.h then
+   if player_dir == grid.dirs.h then
       looking_at =
          arena.get_h_vertex(player_pos[1], player_pos[2], player_pos[3])
-   elseif player_dir == dirs.f then
+   elseif player_dir == grid.dirs.f then
       looking_at =
          arena.get_f_vertex(player_pos[1], player_pos[2], player_pos[3])
-   elseif player_dir == dirs.b then
+   elseif player_dir == grid.dirs.b then
       looking_at =
          arena.get_b_vertex(player_pos[1], player_pos[2], player_pos[3])
    end
@@ -307,13 +245,13 @@ function love.draw()
 
    -- Draw a line from the circle to where the spinner is looking
 
-   if spinner_dir == dirs.h then
+   if spinner_dir == grid.dirs.h then
       looking_at =
          arena.get_h_vertex(spinner_pos[1], spinner_pos[2], spinner_pos[3])
-   elseif spinner_dir == dirs.f then
+   elseif spinner_dir == grid.dirs.f then
       looking_at =
          arena.get_f_vertex(spinner_pos[1], spinner_pos[2], spinner_pos[3])
-   elseif spinner_dir == dirs.b then
+   elseif spinner_dir == grid.dirs.b then
       looking_at =
          arena.get_b_vertex(spinner_pos[1], spinner_pos[2], spinner_pos[3])
    end

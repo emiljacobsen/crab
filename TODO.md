@@ -1,7 +1,6 @@
 # TODO
 
 - Refactor: entities, arena, grid, draw; minimize main.lua
-- Refactor: walls and obstacles go where? Maybe a new structures.lua?
 - Comments above functions
 - Coords-to-triords in arena.lua
 - Enemy collisions with player and walls and obstacles
@@ -30,3 +29,4 @@
 - Remove adjacency dots from walls and obstacles
 - Mark the "current hexagon"
 - Mouse controls
+- Refactor: walls and obstacles go where? Maybe a new structures.lua?

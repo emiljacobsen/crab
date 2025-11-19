@@ -12,7 +12,7 @@ local f_hi
 local b_lo
 local b_hi
 
-local dirs = {
+grid.dirs = {
    h = 0,
    f = 1,
    b = 2
@@ -109,11 +109,11 @@ function grid.get_b_adjacent(h, f, b)
 end
 
 function grid.get_adjacent(h, f, b, dir)
-   if dir == dirs.h then
+   if dir == grid.dirs.h then
       return grid.get_h_adjacent(h, f, b)
-   elseif dir == dirs.f then
+   elseif dir == grid.dirs.f then
       return grid.get_f_adjacent(h, f, b)
-   elseif dir == dirs.b then
+   elseif dir == grid.dirs.b then
       return grid.get_b_adjacent(h, f, b)
    end
 end
