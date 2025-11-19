@@ -1,5 +1,11 @@
 # TODO
 
+- Refactor: entities, arena, grid, draw; minimize main.lua
+- Refactor: walls and obstacles go where? Maybe a new structures.lua?
+- Comments above functions
+- Coords-to-triords in arena.lua
+- Enemy collisions with player and walls and obstacles
+- Make enemies move slightly after the player
 - Load / save map from text file
 - Map editor
 - Add direction toggle
@@ -7,7 +13,6 @@
 - Line rendering instead of triangle rendering
 - Track vertices that are on / off; mark the on ones
 - Change movement? Only half the "hubs" are accessible.
-- Stationary enemies
 - Draw ability compass
 - Compass rotation
 - Two simple abilities and put on compass

@@ -11,6 +11,7 @@
 -- Imports
 
 local arena = require "arena"
+local grid = require "grid"
 
 -- Shorthands:
 
@@ -91,68 +92,13 @@ local function add_obstacle(triord)
    obstacles[table.concat(triord, ",")] = true
 end
 
--- TODO: maybe add these get_blah's to arena.lua?
-
-local function get_left()
-   return arena.get_adjacent(
-      player_pos[1],
-      player_pos[2],
-      player_pos[3],
-      (player_dir + 1) % 3
-   )
-end
-
-local function get_left_better(triord, dir)
-   return arena.get_adjacent(
-      triord[1],
-      triord[2],
-      triord[3],
-      (dir + 1) % 3
-   )
-end
-
-
-local function get_right()
-   return arena.get_adjacent(
-      player_pos[1],
-      player_pos[2],
-      player_pos[3],
-      (player_dir - 1) % 3
-   )
-end
-
-local function get_behind()
-   return arena.get_adjacent(
-      player_pos[1],
-      player_pos[2],
-      player_pos[3],
-      player_dir
-   )
-end
-
-local function get_hexagon()
-   local triords = {}
-   local dir = player_dir
-   triords[1] = player_pos
-   for i = 2, 6 do
-      -- TODO this is repeating code from get_right
-      triords[i] = arena.get_adjacent(
-         triords[i-1][1],
-         triords[i-1][2],
-         triords[i-1][3],
-         (dir - 1) % 3
-      )
-     dir = (dir + 1) % 3
-   end
-   return triords
-end
-
 -- Runs on startup: 
 function love.load()
 
    -- TODO: remove the + 80
-   arena.setup(side_number, { 0, 0 + 40 }, { width, height + 40 })
-   triangles = arena.get_all_triangles()
+   grid.setup(side_number)
+   arena.setup(grid, { 0, 0 + 40 }, { width, height + 40 })
+   triangles = arena.get_all_triangle_vertices()
 
    add_wall({1, 1, 1}, {2, 1, 1})
    add_wall({1, 1, 2}, {1, 0, 2})
@@ -173,12 +119,12 @@ function love.keypressed(key)
    local new_dir = player_dir
 
    if key == 's' then
-      moving_to = get_behind()
+      moving_to = grid.get_behind(player_pos, player_dir)
    elseif key == 'a' then
-      moving_to = get_left()
+      moving_to = grid.get_left(player_pos, player_dir)
       new_dir = (player_dir - 1) % 3
    elseif key == 'd' then
-      moving_to = get_right()
+      moving_to = grid.get_right(player_pos, player_dir)
       new_dir = (player_dir + 1) % 3
    end
 
@@ -189,7 +135,7 @@ function love.keypressed(key)
       player_pos = moving_to
       player_dir = new_dir
 
-      spinner_pos = get_left_better(spinner_pos, spinner_dir)
+      spinner_pos = grid.get_left(spinner_pos, spinner_dir)
       spinner_dir = (spinner_dir - 1) % 3
    end
 
@@ -223,9 +169,9 @@ function love.mousepressed(x, y, button, istouch, presses)
 
    local tristring = h .. "," .. f .. "," .. b
 
-   local left = get_left()
-   local right = get_right()
-   local behind = get_behind()
+   local left = grid.get_left(player_pos, player_dir)
+   local right = grid.get_right(player_pos, player_dir)
+   local behind = grid.get_behind(player_pos, player_dir)
 
    local new_dir = player_dir
 
@@ -254,7 +200,7 @@ function love.draw()
 
    -- Mark the current hexagon
 
-   local hex_triords = get_hexagon()
+   local hex_triords = grid.get_hexagon(player_pos, player_dir)
    gfx.setColor(0.4, 0.4, 0.4, 0.5)
    for _, triord in ipairs(hex_triords) do
       local vertices = arena.get_vertices(triord[1], triord[2], triord[3])
@@ -269,9 +215,12 @@ function love.draw()
 
    -- Draw red dots on player adjacent triangles
 
+   local adjacent = {}
+   local adj_centre = {}
+
    gfx.setColor(1, 0, 0)
-   local adjacent = get_left()
-   local adj_centre = arena.get_centre(adjacent[1], adjacent[2], adjacent[3])
+   adjacent = grid.get_left(player_pos, player_dir)
+   adj_centre = arena.get_centre(adjacent[1], adjacent[2], adjacent[3])
    if not check_wall(player_pos, adjacent)
       and not check_obstacle(adjacent)
    then
@@ -279,8 +228,8 @@ function love.draw()
    end
 
    gfx.setColor(0, 1, 0)
-   local adjacent = get_right()
-   local adj_centre = arena.get_centre(adjacent[1], adjacent[2], adjacent[3])
+   adjacent = grid.get_right(player_pos, player_dir)
+   adj_centre = arena.get_centre(adjacent[1], adjacent[2], adjacent[3])
    if not check_wall(player_pos, adjacent)
       and not check_obstacle(adjacent)
    then
@@ -288,8 +237,8 @@ function love.draw()
    end
 
    gfx.setColor(1, 1, 0)
-   local adjacent = get_behind()
-   local adj_centre = arena.get_centre(adjacent[1], adjacent[2], adjacent[3])
+   adjacent = grid.get_behind(player_pos, player_dir)
+   adj_centre = arena.get_centre(adjacent[1], adjacent[2], adjacent[3])
    if not check_wall(player_pos, adjacent)
       and not check_obstacle(adjacent)
    then

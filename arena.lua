@@ -116,29 +116,18 @@ local first_centre = {}
 local offset_h = {}
 local offset_f = {}
 local offset_b = {}
-local h_lo
-local h_hi
-local f_lo
-local f_hi
-local b_lo
-local b_hi
+local grid = {}
 
 -- The exported module
 local arena = {}
 
--- The possible directions of a triangle,
--- matched with the parity of `h+f+b`.
--- TODO: consdier reformatting to arena.up, arena.down.
-arena.dirs = {
-   up = 1,
-   down = 0
-}
-
 -- Set up the basic parameters of the arena.
 -- Must be run before anyting else.
-function arena.setup(scale, ul, lr)
+function arena.setup(grid_arg, ul, lr)
+   grid = grid_arg
+
    -- The number of triangles sharing a side with a side of the hexagon.
-   arena.scale = scale
+   arena.scale = grid.scale
    -- The upper left bound of the arena square
    arena.ul = ul
    -- The lower right bound of the arena square
@@ -173,38 +162,6 @@ function arena.setup(scale, ul, lr)
 
    -- The centre of first_triangle
    first_centre = geo.centre(first_triangle)
-
-   -- Tri-ordinate bounds:
-   h_lo = 1
-   h_hi = 2 * arena.scale
-   f_lo = -2 * arena.scale + 2
-   f_hi = 1
-   b_lo = -arena.scale + 2
-   b_hi = arena.scale + 1
-end
-
--- Get the direction of a triangle
--- (equal to either of `arena.dirs.up` or `arena.dirs.down`).
-function arena.get_dir(h, f, b)
-   return (h + f + b) % 2
-end
-
-function arena.get_b(h, f, dir)
-    if dir == arena.dirs.up then
-      return 3 - h - f
-   else
-      return 4 - h - f
-   end
-end
-
--- Check if a tri-ordinate `{ h, f, b }` is valid.
--- A triangle is uniquely determined by `(h, f, h+f+b % 2)`.
--- The determination works as follows:
--- - if dir is up, `b = h + f - 1`
--- - if dir is down, `b = h + fs`.
--- TODO: consider not exporting this.
-function arena.check_valid(h, f, b)
-   return b == arena.get_b(h, f, arena.get_dir(h, f, b))
 end
 
 -- Get the coordinates at the centre of the triangle at (h, f, b)
@@ -218,189 +175,51 @@ end
 -- Get the coordinates at the vertices of the triangle at (h, f, b)
 -- Returns an array { x1, y1, x2, y2, x3, y3 }
 function arena.get_vertices(h, f, b)
-   -- Get the centre first:
-   local centre = arena.get_centre(h, f, b)
+   local h_v = arena.get_h_vertex(h, f, b)
+   local f_v = arena.get_f_vertex(h, f, b)
+   local b_v = arena.get_b_vertex(h, f, b)
 
-   -- Then get the vertices:
-   local x1, y1, x2, y2, x3, y3
-
-   if arena.get_dir(h, f, b) == arena.dirs.up then
-      x1 = centre[1]
-      y1 = centre[2] - arena.side / sqrt3
-
-      x2 = centre[1] - arena.side / 2
-      y2 = centre[2] + arena.side / 2 / sqrt3
-
-      x3 = centre[1] + arena.side / 2
-      y3 = centre[2] + arena.side / 2 / sqrt3
-   else
-      x1 = centre[1]
-      y1 = centre[2] + arena.side / sqrt3
-
-      x2 = centre[1] - arena.side / 2
-      y2 = centre[2] - arena.side / 2 / sqrt3
-
-      x3 = centre[1] + arena.side / 2
-      y3 = centre[2] - arena.side / 2 / sqrt3
-   end
-
-   return { x1, y1, x2, y2, x3, y3 }
+   return { h_v[1], h_v[2], f_v[1], f_v[2], b_v[1], b_v[2] }
 end
 
 -- Get the vertex opposite the h line
 function arena.get_h_vertex(h, f, b)
    local centre = arena.get_centre(h, f, b)
-   local x, y
-
-   if arena.get_dir(h, f, b) == arena.dirs.up then
-      x = centre[1]
-      y = centre[2] - arena.side / sqrt3
-   else
-      x = centre[1]
-      y = centre[2] + arena.side / sqrt3
-   end
+   local x = centre[1]
+   local y = centre[2] + grid.get_sign(h, f, b) * arena.side / sqrt3
    return { x, y }
 end
 
 -- Get the vertex opposite the f line
 function arena.get_f_vertex(h, f, b)
    local centre = arena.get_centre(h, f, b)
-   local x, y
-
-   if arena.get_dir(h, f, b) == arena.dirs.up then
-      x = centre[1] + arena.side / 2
-      y = centre[2] + arena.side / 2 / sqrt3
-   else
-      x = centre[1] - arena.side / 2
-      y = centre[2] - arena.side / 2 / sqrt3
-   end
+   local sign = grid.get_sign(h, f, b)
+   local x = centre[1] - sign * arena.side / 2
+   local y = centre[2] - sign * arena.side / 2 / sqrt3
    return { x, y }
 end
 
 -- Get the vertex opposite the b line
 function arena.get_b_vertex(h, f, b)
    local centre = arena.get_centre(h, f, b)
-   local x, y
-
-   if arena.get_dir(h, f, b) == arena.dirs.up then
-      x = centre[1] - arena.side / 2
-      y = centre[2] + arena.side / 2 / sqrt3
-   else
-      x = centre[1] + arena.side / 2
-      y = centre[2] - arena.side / 2 / sqrt3
-   end
+   local sign = grid.get_sign(h, f, b)
+   local x = centre[1] + sign * arena.side / 2
+   local y = centre[2] - sign * arena.side / 2 / sqrt3
    return { x, y }
-end
-
--- Uses the wrapping/warping logic to shift a tri-ordinate into the arena.
--- Returns an array { h', f', b' }.
--- Assumes (for now) at most one tri-ordinate is OOB, and by at most 1.
-local function wrap(h, f, b)
-   if h == h_lo - 1 then
-      return { h_hi, f - arena.scale, b - arena.scale }
-   elseif h == h_hi + 1 then
-      return { h_lo, f + arena.scale, b + arena.scale }
-   elseif f == f_lo - 1 then
-      return { h - arena.scale, f_hi, b - arena.scale }
-   elseif f == f_hi + 1 then
-      return { h + arena.scale, f_lo, b + arena.scale }
-   elseif b == b_lo - 1 then
-      return { h - arena.scale, f - arena.scale, b_hi }
-   elseif b == b_hi + 1 then
-      return { h + arena.scale, f + arena.scale, b_lo }
-   else
-      return { h, f, b }
-   end
-end
-
--- Get the adjacent tri-ordinates (including adjacent by warping)
--- Returns an array of arrays
--- { {h1, f1, b1}, ... }
-function arena.get_adjacents(h, f, b)
-   local adjacents = {
-      arena.get_h_adjacent(h, f, b),
-      arena.get_f_adjacent(h, f, b),
-      arena.get_b_adjacent(h, f, b)
-   }
-   return adjacents
-end
-
-function arena.get_h_adjacent(h, f, b)
-   -- +1 if dir == 1, and -1 if dir == 0
-   local sign = (-1)^(arena.get_dir(h, f, b)+1)
-   return wrap(h+sign, f, b)
-end
-
-function arena.get_f_adjacent(h, f, b)
-   -- +1 if dir == 1, and -1 if dir == 0
-   local sign = (-1)^(arena.get_dir(h, f, b)+1)
-   return wrap(h, f+sign, b)
-end
-
-function arena.get_b_adjacent(h, f, b)
-   -- +1 if dir == 1, and -1 if dir == 0
-   local sign = (-1)^(arena.get_dir(h, f, b)+1)
-   return wrap(h, f, b+sign)
-end
-
-function arena.get_adjacent(h, f, b, dir)
-   if dir == 0 then
-      return arena.get_h_adjacent(h, f, b)
-   elseif dir == 1 then
-      return arena.get_f_adjacent(h, f, b)
-   elseif dir == 2 then
-      return arena.get_b_adjacent(h, f, b)
-   end
 end
 
 -- Get all vertices of all triangles
 -- Returns an array of arrays
 -- { { x1, y1, x2, y2, x3, y3 }, ... }
-function arena.get_all_triangles()
+function arena.get_all_triangle_vertices()
 
    -- TODO: do sanity check that all triords are valid
 
    local triangles = {}
 
-   -- Upper half of the hexagon
-
-   local f_bnd = f_lo + arena.scale
-   for h = 1, arena.scale do
-      for f = f_bnd, f_hi do
-         triangles[#triangles+1] =
-            arena.get_vertices(h, f, arena.get_b(h, f, arena.dirs.up))
-         triangles[#triangles+1] =
-            arena.get_vertices(h, f, arena.get_b(h, f, arena.dirs.down))
-      end
-      f_bnd = f_bnd - 1
-      triangles[#triangles+1] =
-         arena.get_vertices(h, f_bnd, arena.get_b(h, f_bnd, arena.dirs.up))
+   for i, triord in ipairs(grid.get_all_triangles()) do
+      triangles[i] = arena.get_vertices(triord[1], triord[2], triord[3])
    end
-
-   -- Sanity check
-   -- print("upper half f_bnd check in arena.get_all_triangles:", f_bnd == f_lo)
-
-   -- Lower half of the hexagon
-
-   f_bnd = f_hi
-   for h = arena.scale+1, 2 * arena.scale do
-      triangles[#triangles+1] =
-         arena.get_vertices(h, f_bnd, arena.get_b(h, f_bnd, arena.dirs.down))
-      f_bnd = f_bnd - 1
-
-      for f = f_lo, f_bnd do
-         triangles[#triangles+1] =
-            arena.get_vertices(h, f, arena.get_b(h, f, arena.dirs.up))
-         triangles[#triangles+1] =
-            arena.get_vertices(h, f, arena.get_b(h, f, arena.dirs.down))
-      end
-   end
-
-   -- Sanity check
-   -- print(
-   --    "lower half f_bnd check in arena.get_all_triangles:",
-   --    f_bnd == f_lo + arena.scale - 1
-   -- )
 
    return triangles
 end
