@@ -9,6 +9,7 @@
 local arena = require "arena"
 local grid = require "grid"
 local str = require "structures"
+local util = require "utility"
 
 -- Shorthands:
 
@@ -114,15 +115,13 @@ function love.mousepressed(x, y, button, istouch, presses)
 
    local new_dir = player_dir
 
-   -- TODO: this string representation is now considered local to structures.lua
-   -- Something has to change
-   if tristring == triord_to_string(left) then
+   if tristring == util.triord_to_string(left) then
       moving_to = left
       new_dir = (player_dir - 1) % 3
-   elseif tristring == triord_to_string(right) then
+   elseif tristring == util.triord_to_string(right) then
       moving_to = right
       new_dir = (player_dir + 1) % 3
-   elseif tristring == triord_to_string(behind) then
+   elseif tristring == util.triord_to_string(behind) then
       moving_to = behind
    end
 
