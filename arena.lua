@@ -208,6 +208,16 @@ function arena.get_b_vertex(h, f, b)
    return { x, y }
 end
 
+function arena.get_vertex(h, f, b, dir)
+   if dir == grid.dirs.h then
+      return arena.get_h_vertex(h, f, b)
+   elseif dir == grid.dirs.f then
+      return arena.get_f_vertex(h, f, b)
+   elseif dir == grid.dirs.b then
+      return arena.get_b_vertex(h, f, b)
+   end
+end
+
 -- Get all vertices of all triangles
 -- Returns an array of arrays
 -- { { x1, y1, x2, y2, x3, y3 }, ... }

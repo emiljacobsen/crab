@@ -10,6 +10,7 @@ local arena = require "arena"
 local grid = require "grid"
 local str = require "structures"
 local util = require "utility"
+local ent = require "entities"
 
 -- Shorthands:
 
@@ -27,10 +28,6 @@ local sqrt3 = math.sqrt(3)
 local side_number = 3
 
 local triangles = {}
-local player_pos = { 1, 1, 1 }
-local player_dir = grid.dirs.h
-local spinner_pos = { 4, -2, 2 }
-local spinner_dir = grid.dirs.h
 
 -- Runs on startup: 
 function love.load()
@@ -56,33 +53,34 @@ end
 function love.keypressed(key)
 
    local moving_to = nil
-   local new_dir = player_dir
+   local new_dir = ent.player.dir
 
    if key == 's' then
-      moving_to = grid.get_behind(player_pos, player_dir)
+      moving_to = grid.get_behind(ent.player.pos, ent.player.dir)
    elseif key == 'a' then
-      moving_to = grid.get_left(player_pos, player_dir)
-      new_dir = (player_dir - 1) % 3
+      moving_to = grid.get_left(ent.player.pos, ent.player.dir)
+      new_dir = (ent.player.dir - 1) % 3
    elseif key == 'd' then
-      moving_to = grid.get_right(player_pos, player_dir)
-      new_dir = (player_dir + 1) % 3
+      moving_to = grid.get_right(ent.player.pos, ent.player.dir)
+      new_dir = (ent.player.dir + 1) % 3
    end
 
    if moving_to ~= nil
-      and not str.check_wall(player_pos, moving_to)
+      and not str.check_wall(ent.player.pos, moving_to)
       and not str.check_obstacle(moving_to)
    then
-      player_pos = moving_to
-      player_dir = new_dir
+      ent.player.pos = moving_to
+      ent.player.dir = new_dir
 
-      spinner_pos = grid.get_left(spinner_pos, spinner_dir)
-      spinner_dir = (spinner_dir - 1) % 3
+      -- TODO: better implementation of spinner movement in entities.lua
+      -- spinner_pos = grid.get_left(spinner_pos, spinner_dir)
+      -- spinner_dir = (spinner_dir - 1) % 3
    end
 
    -- Put debug info here.
    if key == 'space' then
       print("Pressed space")
-      print("Current triords:", table.concat(player_pos, ", "))
+      print("Current triords:", table.concat(ent.player.pos, ", "))
    end
 end
 
@@ -109,28 +107,28 @@ function love.mousepressed(x, y, button, istouch, presses)
 
    local tristring = h .. "," .. f .. "," .. b
 
-   local left = grid.get_left(player_pos, player_dir)
-   local right = grid.get_right(player_pos, player_dir)
-   local behind = grid.get_behind(player_pos, player_dir)
+   local left = grid.get_left(ent.player.pos, ent.player.dir)
+   local right = grid.get_right(ent.player.pos, ent.player.dir)
+   local behind = grid.get_behind(ent.player.pos, ent.player.dir)
 
-   local new_dir = player_dir
+   local new_dir = ent.player.dir
 
    if tristring == util.triord_to_string(left) then
       moving_to = left
-      new_dir = (player_dir - 1) % 3
+      new_dir = (ent.player.dir - 1) % 3
    elseif tristring == util.triord_to_string(right) then
       moving_to = right
-      new_dir = (player_dir + 1) % 3
+      new_dir = (ent.player.dir + 1) % 3
    elseif tristring == util.triord_to_string(behind) then
       moving_to = behind
    end
 
    if moving_to ~= nil and
       not str.check_obstacle(moving_to) and
-      not str.check_wall(player_pos, moving_to)
+      not str.check_wall(ent.player.pos, moving_to)
    then
-      player_pos = moving_to
-      player_dir = new_dir
+      ent.player.pos = moving_to
+      ent.player.dir = new_dir
    end
 
 end
@@ -140,7 +138,7 @@ function love.draw()
 
    -- Mark the current hexagon
 
-   local hex_triords = grid.get_hexagon(player_pos, player_dir)
+   local hex_triords = grid.get_hexagon(ent.player.pos, ent.player.dir)
    gfx.setColor(0.4, 0.4, 0.4, 0.5)
    for _, triord in ipairs(hex_triords) do
       local vertices = arena.get_vertices(triord[1], triord[2], triord[3])
@@ -159,27 +157,27 @@ function love.draw()
    local adj_centre = {}
 
    gfx.setColor(1, 0, 0)
-   adjacent = grid.get_left(player_pos, player_dir)
+   adjacent = grid.get_left(ent.player.pos, ent.player.dir)
    adj_centre = arena.get_centre(adjacent[1], adjacent[2], adjacent[3])
-   if not str.check_wall(player_pos, adjacent)
+   if not str.check_wall(ent.player.pos, adjacent)
       and not str.check_obstacle(adjacent)
    then
       gfx.circle("fill", adj_centre[1], adj_centre[2], arena.diametre / 12)
    end
 
    gfx.setColor(0, 1, 0)
-   adjacent = grid.get_right(player_pos, player_dir)
+   adjacent = grid.get_right(ent.player.pos, ent.player.dir)
    adj_centre = arena.get_centre(adjacent[1], adjacent[2], adjacent[3])
-   if not str.check_wall(player_pos, adjacent)
+   if not str.check_wall(ent.player.pos, adjacent)
       and not str.check_obstacle(adjacent)
    then
       gfx.circle("fill", adj_centre[1], adj_centre[2], arena.diametre / 12)
    end
 
    gfx.setColor(1, 1, 0)
-   adjacent = grid.get_behind(player_pos, player_dir)
+   adjacent = grid.get_behind(ent.player.pos, ent.player.dir)
    adj_centre = arena.get_centre(adjacent[1], adjacent[2], adjacent[3])
-   if not str.check_wall(player_pos, adjacent)
+   if not str.check_wall(ent.player.pos, adjacent)
       and not str.check_obstacle(adjacent)
    then
       gfx.circle("fill", adj_centre[1], adj_centre[2], arena.diametre / 12)
@@ -205,7 +203,7 @@ function love.draw()
    -- Draw the player
 
    local pc =
-      arena.get_centre(player_pos[1], player_pos[2], player_pos[3])
+      arena.get_centre(ent.player.pos[1], ent.player.pos[2], ent.player.pos[3])
 
    -- Draw a circle where the player is
 
@@ -215,15 +213,15 @@ function love.draw()
    -- Draw a line from the circle to where the player is looking
 
    local looking_at = {}
-   if player_dir == grid.dirs.h then
+   if ent.player.dir == grid.dirs.h then
       looking_at =
-         arena.get_h_vertex(player_pos[1], player_pos[2], player_pos[3])
-   elseif player_dir == grid.dirs.f then
+         arena.get_h_vertex(ent.player.pos[1], ent.player.pos[2], ent.player.pos[3])
+   elseif ent.player.dir == grid.dirs.f then
       looking_at =
-         arena.get_f_vertex(player_pos[1], player_pos[2], player_pos[3])
-   elseif player_dir == grid.dirs.b then
+         arena.get_f_vertex(ent.player.pos[1], ent.player.pos[2], ent.player.pos[3])
+   elseif ent.player.dir == grid.dirs.b then
       looking_at =
-         arena.get_b_vertex(player_pos[1], player_pos[2], player_pos[3])
+         arena.get_b_vertex(ent.player.pos[1], ent.player.pos[2], ent.player.pos[3])
    end
    local look_line = { pc[1], pc[2], looking_at[1], looking_at[2] }
    gfx.line(look_line)
@@ -232,34 +230,27 @@ function love.draw()
 
    gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
 
-   -- Draw a "spinner" "enemy"
-
-   local sc =
-      arena.get_centre(spinner_pos[1], spinner_pos[2], spinner_pos[3])
-
-   -- Draw a circle where the spinner is
+   -- Draw "spinners"
 
    gfx.setColor(1, 0, 0)
-   gfx.circle("fill", sc[1], sc[2], arena.side/10)
+   for _, s in ipairs(ent.spinners) do
+      local sc = arena.get_centre(s.pos[1], s.pos[2], s.pos[3])
 
-   -- Draw a line from the circle to where the spinner is looking
+      -- Draw a circle where the spinner is
 
-   if spinner_dir == grid.dirs.h then
-      looking_at =
-         arena.get_h_vertex(spinner_pos[1], spinner_pos[2], spinner_pos[3])
-   elseif spinner_dir == grid.dirs.f then
-      looking_at =
-         arena.get_f_vertex(spinner_pos[1], spinner_pos[2], spinner_pos[3])
-   elseif spinner_dir == grid.dirs.b then
-      looking_at =
-         arena.get_b_vertex(spinner_pos[1], spinner_pos[2], spinner_pos[3])
+      gfx.circle("fill", sc[1], sc[2], arena.side/10)
+
+      -- Draw a line from the circle to where the spinner is looking
+
+      looking_at = arena.get_vertex(s.pos[1], s.pos[2], s.pos[3], s.dir)
+      look_line = { sc[1], sc[2], looking_at[1], looking_at[2] }
+      gfx.line(look_line)
+
+      -- Draw a dot where the spinner is looking
+
+      gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
+
    end
-   look_line = { sc[1], sc[2], looking_at[1], looking_at[2] }
-   gfx.line(look_line)
-
-   -- Draw a dot where the spinner is looking
-
-   gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
 
    -- Draw UI
 
