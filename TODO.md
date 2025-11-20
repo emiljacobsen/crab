@@ -12,6 +12,11 @@
 - Compass rotation
 - Two simple abilities and put on compass
 - Incorporate warp for marked vertices
+- Render walker and spinner direction
+- Stop hazards that are about to collide with eachother
+- Player health, death, and reset
+- Spawn, twist, goal, and congratulatory message
+- Random enemies and structures
 
 ## DONE
 
@@ -31,3 +36,5 @@
 - Coords-to-triords in arena.lua
 - Enemy collisions with player and walls and obstacles
 - Make enemies move slightly after the player
+- Enemies reverse directions after colliding with structure
+- Implement walkers

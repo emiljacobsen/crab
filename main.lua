@@ -43,13 +43,15 @@ function love.load()
    str.add_wall({4,-1,1}, {4,-2,1})
    str.add_wall({4,-1,0}, {4,0,0})
    str.add_wall({3,-1,1},{3,0,1})
+   str.add_wall({2,-1,3},{2,-2,3})
+   str.add_wall({4,0,-1},{4,0,0})
    str.add_obstacle({3,-2,2})
 end
 
 -- Runs every frame:
 function love.update(dt)
    if moved and love.timer.getTime() - moved_time > 0.02 then
-      ent.move_spinners()
+      ent.move_hazards()
 
       moved = false
    end
@@ -63,9 +65,7 @@ function love.keypressed(key)
 
    if key == 's' then
       moving_to = grid.get_behind(ent.player.pos, ent.player.dir)
-   elseif key == 'a' then      -- TODO: better implementation of spinner movement in entities.lua
-      -- spinner_pos = grid.get_left(spinner_pos, spinner_dir)
-
+   elseif key == 'a' then
       moving_to = grid.get_left(ent.player.pos, ent.player.dir)
       new_dir = (ent.player.dir - 1) % 3
    elseif key == 'd' then
@@ -73,15 +73,7 @@ function love.keypressed(key)
       new_dir = (ent.player.dir + 1) % 3
    end
 
-   if moving_to ~= nil
-      and not str.check_wall(ent.player.pos, moving_to)
-      and not str.check_obstacle(moving_to)
-   then
-      ent.player.pos = moving_to
-      ent.player.dir = new_dir
-      moved = true
-      moved_time = love.timer.getTime()
-   end
+   moved, moved_time = ent.move_player(moving_to, new_dir)
 
    -- Put debug info here.
    if key == 'space' then
@@ -114,15 +106,7 @@ function love.mousepressed(x, y, button, istouch, presses)
       moving_to = behind
    end
 
-   if moving_to ~= nil and
-      not str.check_obstacle(moving_to) and
-      not str.check_wall(ent.player.pos, moving_to)
-   then
-      ent.player.pos = moving_to
-      ent.player.dir = new_dir
-      moved = true
-      moved_time = love.timer.getTime()
-   end
+   moved, moved_time = ent.move_player(moving_to, new_dir)
 
 end
 
@@ -136,6 +120,15 @@ function love.draw()
 
    -- Draw the arena
    draw.arena()
+
+   -- Draw walls
+   draw.walls(str.get_walls())
+
+   -- Draw obstacles
+   draw.obstacles(str.get_obstacles())
+
+   -- Draw hazards
+   draw.hazards(ent.hazards)
 
    -- Draw the player (need to pass on adjacent, accessible triords)
 
@@ -161,15 +154,6 @@ function love.draw()
    end
 
    draw.player(ent.player, left, right, behind)
-
-   -- Draw walls
-   draw.walls(str.get_walls())
-
-   -- Draw obstacles
-   draw.obstacles(str.get_obstacles())
-
-   -- Draw "spinners"
-   draw.spinners(ent.spinners)
 
    -- Draw UI
 
