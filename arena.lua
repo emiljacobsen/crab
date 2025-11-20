@@ -112,12 +112,12 @@ local util = require "utility"
 -- Variable scoped to the file
 
 local sqrt3 = math.sqrt(3)
-local first_triangle = {}
-local first_centre = {}
-local offset_h = {}
-local offset_f = {}
-local offset_b = {}
-local grid = {}
+local first_triangle = nil
+local first_centre = nil
+local offset_h = nil
+local offset_f = nil
+local offset_b = nil
+local grid = nil
 
 -- The exported module
 local arena = {}

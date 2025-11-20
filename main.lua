@@ -24,11 +24,10 @@ local width = gfx.getWidth()
 local height = gfx.getHeight()
 local font = gfx.newFont("fonts/gerhaus.ttf", 20)
 
-local sqrt3 = math.sqrt(3)
-
 local side_number = 3
 
-local triangles = {}
+local moved = false
+local moved_time = nil
 
 -- Runs on startup: 
 function love.load()
@@ -37,7 +36,7 @@ function love.load()
    grid.setup(side_number)
    arena.setup(grid, { 0, 0 + 40 }, { width, height + 40 })
    draw.setup(arena)
-   triangles = arena.get_all_triangle_vertices()
+   ent.setup(grid, str)
 
    str.add_wall({1, 1, 1}, {2, 1, 1})
    str.add_wall({1, 1, 2}, {1, 0, 2})
@@ -49,6 +48,11 @@ end
 
 -- Runs every frame:
 function love.update(dt)
+   if moved and love.timer.getTime() - moved_time > 0.02 then
+      ent.move_spinners()
+
+      moved = false
+   end
 end
 
 -- Callback function for keypresses
@@ -59,7 +63,9 @@ function love.keypressed(key)
 
    if key == 's' then
       moving_to = grid.get_behind(ent.player.pos, ent.player.dir)
-   elseif key == 'a' then
+   elseif key == 'a' then      -- TODO: better implementation of spinner movement in entities.lua
+      -- spinner_pos = grid.get_left(spinner_pos, spinner_dir)
+
       moving_to = grid.get_left(ent.player.pos, ent.player.dir)
       new_dir = (ent.player.dir - 1) % 3
    elseif key == 'd' then
@@ -73,10 +79,8 @@ function love.keypressed(key)
    then
       ent.player.pos = moving_to
       ent.player.dir = new_dir
-
-      -- TODO: better implementation of spinner movement in entities.lua
-      -- spinner_pos = grid.get_left(spinner_pos, spinner_dir)
-      -- spinner_dir = (spinner_dir - 1) % 3
+      moved = true
+      moved_time = love.timer.getTime()
    end
 
    -- Put debug info here.
@@ -116,11 +120,12 @@ function love.mousepressed(x, y, button, istouch, presses)
    then
       ent.player.pos = moving_to
       ent.player.dir = new_dir
+      moved = true
+      moved_time = love.timer.getTime()
    end
 
 end
 
--- Draw function
 function love.draw()
 
    -- Highlight the current hexagon

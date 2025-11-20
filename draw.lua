@@ -1,6 +1,6 @@
 local draw = {}
 
-local arena = {}
+local arena = nil
 
 local gfx = love.graphics
 
