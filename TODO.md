@@ -1,7 +1,6 @@
 # TODO
 
 - Comments above functions
-- Make enemies move slightly after the player
 - Load / save map from text file
 - Map editor
 - Add direction toggle
@@ -31,3 +30,4 @@
 - Refactor: entities, arena, grid, draw; minimize main.lua
 - Coords-to-triords in arena.lua
 - Enemy collisions with player and walls and obstacles
+- Make enemies move slightly after the player
