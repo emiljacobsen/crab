@@ -1,8 +1,6 @@
 # TODO
 
-- Refactor: entities, arena, grid, draw; minimize main.lua
 - Comments above functions
-- Coords-to-triords in arena.lua
 - Enemy collisions with player and walls and obstacles
 - Make enemies move slightly after the player
 - Load / save map from text file
@@ -30,3 +28,5 @@
 - Mark the "current hexagon"
 - Mouse controls
 - Refactor: walls and obstacles go where? Maybe a new structures.lua?
+- Refactor: entities, arena, grid, draw; minimize main.lua
+- Coords-to-triords in arena.lua
