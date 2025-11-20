@@ -13,7 +13,7 @@
 - Two simple abilities and put on compass
 - Incorporate warp for marked vertices
 - Render walker and spinner direction
-- Stop hazards that are about to collide with eachother
+- Stop hazards that are about to collide with each other
 - Player health, death, and reset
 - Spawn, twist, goal, and congratulatory message
 - Random enemies and structures
