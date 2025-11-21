@@ -1,9 +1,12 @@
 local grid = {}
 
--- The possible directions of a triangle,
+-- The possible orientations of a triangle,
 -- matched with the value of `h+f+b`.
-grid.up = 3
-grid.down = 4
+
+grid.up = 3 -- = h + f + b = 1 + 1 + 1
+grid.down = 4 -- = h + f + b = (1 + 1) + 1 + 1
+
+-- Triordinate bounds for the grid.
 
 local h_lo
 local h_hi
@@ -12,16 +15,22 @@ local f_hi
 local b_lo
 local b_hi
 
+-- The three directions.
+-- Ordered clockwise for an up-triangle,
+-- counter-clockwise for a down-triangle.
 grid.dirs = {
    h = 0,
    f = 1,
    b = 2
 }
 
+-- Must run first.
+-- `scale` is the number of triangles along a side of the hexagon.
 function grid.setup(scale)
    grid.scale = scale
 
-   -- Tri-ordinate bounds:
+   -- Set tri-ordinate bounds:
+
    h_lo = 1
    h_hi = 2 * scale
    f_lo = -2 * scale + 2
@@ -41,15 +50,14 @@ function grid.get_sign(h, f, b)
    return (-1)^(grid.get_type(h, f, b))
 end
 
+-- Compute the b tri-ordinate of a triangle
+-- from its `h`, `f`, and orientation (`type`).
 function grid.get_b(h, f, type)
     return type - h - f
 end
 
--- Check if a tri-ordinate `{ h, f, b }` is valid.
--- A triangle is uniquely determined by `(h, f, h+f+b % 2)`.
--- The determination works as follows:
--- - if dir is up, `b = h + f - 1`
--- - if dir is down, `b = h + fs`.
+-- Check if a tri-ordinate `h, f, b` is valid.
+-- A triangle is uniquely determined by `(h, f, h+f+b)`.
 -- TODO: consider not exporting this.
 function grid.check_valid(h, f, b)
    return grid.get_type(h, f, b) == grid.up
@@ -90,24 +98,32 @@ function grid.get_adjacents(h, f, b)
    return adjacents
 end
 
+-- Return the adjacent triangle along an h line.
+-- Returns an array { h', f', b' }.
 function grid.get_h_adjacent(h, f, b)
    -- +1 if dir == up, and -1 if dir == down
    local sign = (-1)^(grid.get_type(h, f, b)+1)
    return wrap(h+sign, f, b)
 end
 
+-- Return the adjacent triangle along an f line.
+-- Returns an array { h', f', b' }.
 function grid.get_f_adjacent(h, f, b)
    -- +1 if dir == up, and -1 if dir == down
    local sign = (-1)^(grid.get_type(h, f, b)+1)
    return wrap(h, f+sign, b)
 end
 
+-- Return the adjacent triangle along an b line.
+-- Returns an array { h', f', b' }.
 function grid.get_b_adjacent(h, f, b)
    -- +1 if dir == up, and -1 if dir == down
    local sign = (-1)^(grid.get_type(h, f, b)+1)
    return wrap(h, f, b+sign)
 end
 
+-- Return the adjacent triangle along a dir line.
+-- Returns an array { h', f', b' }.
 function grid.get_adjacent(h, f, b, dir)
    if dir == grid.dirs.h then
       return grid.get_h_adjacent(h, f, b)
@@ -118,6 +134,9 @@ function grid.get_adjacent(h, f, b, dir)
    end
 end
 
+-- Get the adjacent triangle which is left for
+-- someone standing at `triord` with the `dir` line behind them.
+-- Returns a triordinate array.
 function grid.get_left(triord, dir)
    return grid.get_adjacent(
       triord[1],
@@ -127,6 +146,9 @@ function grid.get_left(triord, dir)
    )
 end
 
+-- Get the adjacent triangle which is right for
+-- someone standing at `triord` with the `dir` line behind them.
+-- Returns a triordinate array.
 function grid.get_right(triord, dir)
    return grid.get_adjacent(
       triord[1],
@@ -136,6 +158,9 @@ function grid.get_right(triord, dir)
    )
 end
 
+-- Get the adjacent triangle which is across the `dir` line.
+-- This is the same, as grid.get_adjacent, but with args differently formatted.
+-- Returns a triordinate array.
 function grid.get_behind(triord, dir)
    return grid.get_adjacent(
       triord[1],
@@ -145,6 +170,11 @@ function grid.get_behind(triord, dir)
    )
 end
 
+-- Get the hexagon one spinns through when standing at
+-- triord with the dir line behind ones back,
+-- and rotating around the vertex ahead.
+-- Returns an array of six arrays
+-- { { h1, f1, b1 }, ..., { h6, f6, b6 } }.
 function grid.get_hexagon(triord, dir)
    local triords = {}
    local last_dir = dir
@@ -156,6 +186,9 @@ function grid.get_hexagon(triord, dir)
    return triords
 end
 
+-- Get the triordinates of all the triangles in the grid.
+-- Returns an array
+-- { { h1, f1, b1 }, ... }.
 function grid.get_all_triangles()
 
    -- TODO: do sanity check that all triords are valid

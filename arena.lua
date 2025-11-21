@@ -1,3 +1,5 @@
+local arena = {}
+
 -- Explainer:
 
 -- The grid is cut out by parallel lines in three directions:
@@ -101,29 +103,35 @@
 -- and compute the relevant arena_axis_mins
 -- (they should follow from the work needed to change to line rendering).
 
--- TODO: separate into a "triangular grid" library
---       and an arena library
-
 -- Imports
 
 local geo = require "geometry"
 local util = require "utility"
 
+-- Need this to be the same instance as in main.lua
+local grid = nil
+
 -- Variable scoped to the file
 
 local sqrt3 = math.sqrt(3)
+
+-- The first upright triangle on the first row of the hexagon.
+-- With tri-ordinate (1, 1, 1).
+-- This variable stores its screen coordinates.
 local first_triangle = nil
 local first_centre = nil
+
+-- TODO: give offset_vectors explainer comments (move down from top explainer)
+
 local offset_h = nil
 local offset_f = nil
 local offset_b = nil
-local grid = nil
-
--- The exported module
-local arena = {}
 
 -- Set up the basic parameters of the arena.
 -- Must be run before anyting else.
+-- The arena fills out the bounding box with
+-- upper left corner `ul`, and
+-- lower right corner `lr`.
 function arena.setup(grid_arg, ul, lr)
    grid = grid_arg
 
@@ -151,21 +159,19 @@ function arena.setup(grid_arg, ul, lr)
    offset_f = { -arena.side / 2, -arena.diametre / 3 }
    offset_b = { arena.side / 2, -arena.diametre / 3 }
 
-   -- The first upright triangle on the first row of the hexagon.
-   -- With tri-ordinate (1, 1, 1).
    -- TODO: shift down a bit, to center the hexagon vertically
+   --       (Should replace ARENA_Y_OFFSET.)
    first_triangle = {
       arena.side * arena.scale / 2, 0 ,
       arena.side * (arena.scale-1) / 2, arena.diametre,
       arena.side * (arena.scale+1) / 2, arena.diametre
    }
    first_triangle = geo.translate(first_triangle, ul)
-
-   -- The centre of first_triangle
    first_centre = geo.centre(first_triangle)
 end
 
--- Get the coordinates at the centre of the triangle at (h, f, b)
+-- Get the coordinates at the centre of the triangle at (h, f, b).
+-- Returns { x, y }.
 function arena.get_centre(h, f, b)
    local centre = geo.translate(first_centre, geo.scale(offset_h, h-1))
    centre = geo.translate(centre, geo.scale(offset_f, f-1))
@@ -173,8 +179,8 @@ function arena.get_centre(h, f, b)
    return centre
 end
 
--- Get the coordinates at the vertices of the triangle at (h, f, b)
--- Returns an array { x1, y1, x2, y2, x3, y3 }
+-- Get the coordinates at the vertices of the triangle at (h, f, b).
+-- Returns an array { x1, y1, x2, y2, x3, y3 }.
 function arena.get_vertices(h, f, b)
    local h_v = arena.get_h_vertex(h, f, b)
    local f_v = arena.get_f_vertex(h, f, b)
@@ -183,7 +189,8 @@ function arena.get_vertices(h, f, b)
    return { h_v[1], h_v[2], f_v[1], f_v[2], b_v[1], b_v[2] }
 end
 
--- Get the vertex opposite the h line
+-- Get the vertex opposite the h line.
+-- Returns { x, y }.
 function arena.get_h_vertex(h, f, b)
    local centre = arena.get_centre(h, f, b)
    local x = centre[1]
@@ -191,7 +198,8 @@ function arena.get_h_vertex(h, f, b)
    return { x, y }
 end
 
--- Get the vertex opposite the f line
+-- Get the vertex opposite the f line.
+-- Returns { x, y }.
 function arena.get_f_vertex(h, f, b)
    local centre = arena.get_centre(h, f, b)
    local sign = grid.get_sign(h, f, b)
@@ -200,7 +208,8 @@ function arena.get_f_vertex(h, f, b)
    return { x, y }
 end
 
--- Get the vertex opposite the b line
+-- Get the vertex opposite the b line.
+-- Returns { x, y }.
 function arena.get_b_vertex(h, f, b)
    local centre = arena.get_centre(h, f, b)
    local sign = grid.get_sign(h, f, b)
@@ -209,6 +218,8 @@ function arena.get_b_vertex(h, f, b)
    return { x, y }
 end
 
+-- Get the vertex in the `dir` direction / opposite the `dir` line.
+-- Returns { x, y }
 function arena.get_vertex(h, f, b, dir)
    if dir == grid.dirs.h then
       return arena.get_h_vertex(h, f, b)
@@ -238,7 +249,7 @@ end
 -- Returns the line between the (adjacent) triangles at
 -- triordinates triord1 and triord2.
 -- The triords are arrays { h, f, b }.
--- Returns an array { x1, y1, x2, y2 }
+-- Returns an array { x1, y1, x2, y2 }.
 function arena.get_wall_line(triord1, triord2)
    local start = {}
    local finish = {}
@@ -259,6 +270,9 @@ function arena.get_wall_line(triord1, triord2)
    return { start[1], start[2], finish[1], finish[2] }
 end
 
+-- Returns the triordinate of the triangle
+-- containing the point (x, y).
+-- Returns a triordinate array { h, f, b }.
 function arena.coord_to_triord(x, y)
    local h = 1 +
       math.floor((y - ARENA_Y_OFFSET) / arena.diametre)
@@ -278,7 +292,6 @@ function arena.coord_to_triord(x, y)
 
    return util.string_to_triord(h .. "," .. f .. "," .. b)
 end
-
 
 -- TODO: get lines
 

@@ -48,6 +48,8 @@ function love.load()
    draw.setup(arena)
    ent.setup(grid, str)
 
+   -- Manually add some walls and an obstacle (for now)
+
    str.add_wall({1, 1, 1}, {2, 1, 1})
    str.add_wall({1, 1, 2}, {1, 0, 2})
    str.add_wall({4,-1,1}, {4,-2,1})
@@ -97,19 +99,26 @@ function love.keypressed(key)
    end
 end
 
+-- Runs when a mouse button is pressed
 function love.mousepressed(x, y, button, istouch, presses)
 
+   -- Only interested in left click
    if not button == 1 then return end
 
    local moving_to = nil
+   local new_dir = ent.player.dir
 
+   -- This is a string representing the clicked triangle
    local tristring = util.triord_to_string(arena.coord_to_triord(x, y))
+
+   -- Here are the three adjacent triangles
 
    local left = grid.get_left(ent.player.pos, ent.player.dir)
    local right = grid.get_right(ent.player.pos, ent.player.dir)
    local behind = grid.get_behind(ent.player.pos, ent.player.dir)
 
-   local new_dir = ent.player.dir
+   -- Check if the clicked triangle is adjacent,
+   -- if so, set the new pos and dir accordingly
 
    if tristring == util.triord_to_string(left) then
       moving_to = left
@@ -121,6 +130,7 @@ function love.mousepressed(x, y, button, istouch, presses)
       moving_to = behind
    end
 
+   -- Try to move if it's the players turn
    if can_move then
       moved, moved_time = ent.move_player(moving_to, new_dir)
       can_move = not moved

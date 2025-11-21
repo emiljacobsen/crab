@@ -2,7 +2,6 @@
 
 ## Minimum viable
 
-- Comments above functions.
 - System for UI elements (info / toggles / etc, automatically spaced).
 - Add direction toggle.
 - Render walker and spinner direction.
@@ -51,3 +50,5 @@
 - Make enemies move slightly after the player.
 - Enemies reverse directions after colliding with structure.
 - Implement walkers.
+- Make hazards and the player truly take turns.
+- Comments above functions.

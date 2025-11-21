@@ -1,19 +1,24 @@
 local draw = {}
 
+-- I need the instance of arena set up in main.lua
 local arena = nil
 
+-- Shorthand
 local gfx = love.graphics
 
+-- Needs arena_arg to be the instance of arena set up in main.lua
 function draw.setup(arena_arg)
    arena = arena_arg
 end
 
+-- Draw the player
 function draw.player(player, left, right, behind)
 
-   -- Draw red dots on player adjacent triangles
+   -- Draw dots on player adjacent triangles
 
-   local centre = {}
+   -- The size of the adjacency dots
    local dot_size = arena.diametre / 16
+   local centre
 
    gfx.setColor(1, 0, 0)
    if left ~= nil then
@@ -51,7 +56,10 @@ function draw.player(player, left, right, behind)
    gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
 end
 
+-- Draw the hazards
 function draw.hazards(hazards)
+
+   -- Draw the spinners
 
    gfx.setColor(1, 0.5, 0)
    for _, s in pairs(hazards.spinners) do
@@ -70,23 +78,35 @@ function draw.hazards(hazards)
       gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
    end
 
+   -- Draw the walkers
+
    gfx.setColor(0.7, 0.2, 0.5)
    for _, w in pairs(hazards.walkers) do
+      -- The centre of the walker's triangle
       local c = arena.get_centre(w.pos[1], w.pos[2], w.pos[3])
+
+      -- Draw the walker itself
       gfx.circle("fill", c[1], c[2], arena.side / 10)
+
+      -- Indicate where the walker is "looking"
+      -- TODO: change this to the center of the walker's next triangle.
+      -- TODO: should just make draw.lua know about entities,
+      --       instead of passing triordinate arguments.
+      -- First with a line:
 
       local looking_at =
          arena.get_vertex(w.pos[1], w.pos[2], w.pos[3], w.avoid)
       local look_line = { c[1], c[2], looking_at[1], looking_at[2] }
       gfx.line(look_line)
 
-      -- Draw a dot where the spinner is looking
-
+      -- Then a dot where the spinner is looking
       gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
 
    end
 end
 
+-- Draw the obstacles.
+-- `obstacles` is an array of triordinates { h, f, b }.
 function draw.obstacles(obstacles)
    gfx.setColor(1, 1, 1)
    for _, triord in pairs(obstacles) do
@@ -94,6 +114,8 @@ function draw.obstacles(obstacles)
    end
 end
 
+-- Draw the walls.
+-- `wall_pairs` is an array of pairs { { h, f, b }, { h', f', b' } }.
 function draw.walls(wall_pairs)
    gfx.setColor(1, 1, 1)
    gfx.setLineWidth(5)
@@ -104,11 +126,13 @@ function draw.walls(wall_pairs)
    gfx.setLineWidth(1)
 end
 
+-- Highlight the triangle at triordinate `triord` = { h, f, b }.
 function draw.highlight_triangle(triord)
    gfx.setColor(0.4, 0.4, 0.4, 0.5)
    gfx.polygon("fill", arena.get_vertices(triord[1], triord[2], triord[3]))
 end
 
+-- Draw the arena.
 function draw.arena()
    gfx.setColor(0.6, 0.6, 0.6)
    local triangles = arena.get_all_triangle_vertices()
