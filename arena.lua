@@ -260,22 +260,21 @@ function arena.get_wall_line(triord1, triord2)
 end
 
 function arena.coord_to_triord(x, y)
-   -- TODO: get rid of the 40 offset (should be in a variable)
-
    local h = 1 +
-      math.floor((y - 40) / arena.diametre)
+      math.floor((y - ARENA_Y_OFFSET) / arena.diametre)
 
    local f_offset_vertex = arena.get_h_vertex(1, 1, 1)
-   local f_offset = -f_offset_vertex[1] - (f_offset_vertex[2] - 40) / sqrt3
+   local f_offset = -f_offset_vertex[1]
+      - (f_offset_vertex[2] - ARENA_Y_OFFSET) / sqrt3
    local f = 2 +
-      math.floor((-x - (y - 40) / sqrt3 - f_offset) / arena.side)
+      math.floor((-x - (y - ARENA_Y_OFFSET) / sqrt3 - f_offset) / arena.side)
 
    local b_offset_vertex =
       arena.get_h_vertex(1, 1 - arena.scale, 1 + arena.scale)
    local b_offset =
-      b_offset_vertex[1] - (b_offset_vertex[2] - 40) / sqrt3
+      b_offset_vertex[1] - (b_offset_vertex[2] - ARENA_Y_OFFSET) / sqrt3
    local b = 5 +
-      math.floor((x - (y - 40) / sqrt3 - b_offset) / arena.side)
+      math.floor((x - (y - ARENA_Y_OFFSET) / sqrt3 - b_offset) / arena.side)
 
    return util.string_to_triord(h .. "," .. f .. "," .. b)
 end

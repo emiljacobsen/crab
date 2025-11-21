@@ -110,7 +110,7 @@ function draw.highlight_triangle(triord)
 end
 
 function draw.arena()
-   gfx.setColor(1, 1, 1)
+   gfx.setColor(0.6, 0.6, 0.6)
    local triangles = arena.get_all_triangle_vertices()
    for _, vertices in pairs(triangles) do
       gfx.polygon("line", vertices)

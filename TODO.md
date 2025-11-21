@@ -10,6 +10,8 @@
 - Player health, death, and reset.
 - Spawn, goal, and congratulatory message.
 - Random enemies and structures.
+- Sound effects.
+- A little bit of screen shake or something.
 
 ## Extra
 
@@ -19,6 +21,9 @@
 - Load / save map from text file.
 - Map editor.
 - Two-step goal, with twist to off vertex.
+- Round off wall lines.
+- More juice.
+- Textures.
 
 ## Ability compass
 

@@ -24,17 +24,27 @@ local width = gfx.getWidth()
 local height = gfx.getHeight()
 local font = gfx.newFont("fonts/gerhaus.ttf", 20)
 
-local side_number = 3
+-- TODO: Deal with this in a better (automatic) way
+ARENA_Y_OFFSET = 40
 
+-- The number of triangles along a side of the arena
+local scale = 3
+
+-- Did the player just move?
 local moved = false
+-- Can the player move now?
+local can_move = true
+-- When did the player last move?
 local moved_time = nil
 
 -- Runs on startup: 
 function love.load()
 
-   -- TODO: remove the + 80
-   grid.setup(side_number)
-   arena.setup(grid, { 0, 0 + 40 }, { width, height + 40 })
+   grid.setup(scale)
+   arena.setup(
+      grid,
+      { 0, 0 + ARENA_Y_OFFSET },
+      { width, height + ARENA_Y_OFFSET })
    draw.setup(arena)
    ent.setup(grid, str)
 
@@ -50,10 +60,11 @@ end
 
 -- Runs every frame:
 function love.update(dt)
-   if moved and love.timer.getTime() - moved_time > 0.02 then
+   if moved and love.timer.getTime() - moved_time > 0.1 then
       ent.move_hazards()
 
       moved = false
+      can_move = true
    end
 end
 
@@ -73,7 +84,11 @@ function love.keypressed(key)
       new_dir = (ent.player.dir + 1) % 3
    end
 
-   moved, moved_time = ent.move_player(moving_to, new_dir)
+   -- TODO: should record the input and move the player once it's ok to move?
+   if can_move then
+      moved, moved_time = ent.move_player(moving_to, new_dir)
+      can_move = not moved
+   end
 
    -- Put debug info here.
    if key == 'space' then
@@ -106,7 +121,10 @@ function love.mousepressed(x, y, button, istouch, presses)
       moving_to = behind
    end
 
-   moved, moved_time = ent.move_player(moving_to, new_dir)
+   if can_move then
+      moved, moved_time = ent.move_player(moving_to, new_dir)
+      can_move = not moved
+   end
 
 end
 
