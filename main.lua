@@ -58,8 +58,8 @@ function love.load()
       grid,
       { 0, 0 + ARENA_Y_OFFSET },
       { width, height + ARENA_Y_OFFSET })
-   draw.setup(arena, { height + 40, 10 }, { width, height - 40 })
    ent.setup(grid, str)
+   draw.setup(arena, { height + 40, 10 }, { width, height - 40 }, ent)
 
    -- Manually add some UI elements
 

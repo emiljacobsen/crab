@@ -2,6 +2,8 @@ local draw = {}
 
 -- I need the instance of arena set up in main.lua
 local arena = nil
+-- Same with entities
+local ent = nil
 
 -- Shorthand
 local gfx = love.graphics
@@ -21,13 +23,14 @@ local panel_next = 10
 -- Needs arena_arg to be the instance of arena set up in main.lua.
 -- The other two args describe the box bounding
 -- the panel of UI elements on the right.
-function draw.setup(arena_arg, panel_ul_arg, panel_lr_arg)
+function draw.setup(arena_arg, panel_ul_arg, panel_lr_arg, entities)
    arena = arena_arg
    panel_ul = panel_ul_arg
    panel_lr = panel_lr_arg
+   ent = entities
 end
 
-function draw.add_ui(zone, type, text1, colour, text2)
+function draw.add_ui(zone, type, text, colour)
    local elt = {}
 
    elt.pos = {}
@@ -35,13 +38,9 @@ function draw.add_ui(zone, type, text1, colour, text2)
    elt.pos[2] = panel_ul[2] + panel_next
    panel_next = panel_next + panel_offset
 
-   elt.text = text1
+   elt.text = text
    elt.type = type
    elt.colour = colour
-
-   if type == "button" then
-      elt.alt = text2
-   end
 
    local key = #(ui[zone]) + 1
 
@@ -79,10 +78,13 @@ function draw.dot(triord, colour)
 end
 
 -- Draw the player.
-function draw.player(player)
+function draw.player()
 
    -- The centre of the player's triangle
-   local pc = arena.get_centre(player.pos[1], player.pos[2], player.pos[3])
+   local pc = arena.get_centre(
+      ent.player.pos[1],
+      ent.player.pos[2],
+      ent.player.pos[3])
 
    -- Draw a circle where the player is
    gfx.setColor(0.6, 0.6, 0.6)
@@ -91,8 +93,10 @@ function draw.player(player)
    gfx.circle("line", pc[1], pc[2], arena.side/6)
 
    -- Draw a line from the circle to where the player is looking
-   local looking_at =
-      arena.get_vertex(player.pos[1], player.pos[2], player.pos[3], player.dir)
+   local looking_at = arena.get_vertex(
+      ent.player.pos[1],
+      ent.player.pos[2], ent.player.pos[3],
+      ent.player.dir)
    gfx.line(pc[1], pc[2], looking_at[1], looking_at[2])
 
    -- Draw a white point where the player is looking
@@ -100,12 +104,12 @@ function draw.player(player)
 end
 
 -- Draw the hazards
-function draw.hazards(hazards)
+function draw.hazards()
 
    -- Draw the spinners
 
    gfx.setColor(1, 0.5, 0)
-   for _, s in pairs(hazards.spinners) do
+   for _, s in pairs(ent.hazards.spinners) do
       local c = arena.get_centre(s.pos[1], s.pos[2], s.pos[3])
 
       -- Draw a circle where the spinner is
@@ -124,7 +128,7 @@ function draw.hazards(hazards)
    -- Draw the walkers
 
    gfx.setColor(0.7, 0.2, 0.5)
-   for _, w in pairs(hazards.walkers) do
+   for _, w in pairs(ent.hazards.walkers) do
       -- The centre of the walker's triangle
       local c = arena.get_centre(w.pos[1], w.pos[2], w.pos[3])
 
@@ -133,8 +137,6 @@ function draw.hazards(hazards)
 
       -- Indicate where the walker is "looking"
       -- TODO: change this to the center of the walker's next triangle.
-      -- TODO: should just make draw.lua know about entities,
-      --       instead of passing triordinate arguments.
       -- First with a line:
 
       local looking_at =
