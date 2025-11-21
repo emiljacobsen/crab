@@ -2,8 +2,6 @@
 
 ## Minimum viable
 
-- System for UI elements (info / toggles / etc, automatically spaced).
-- Add direction toggle.
 - Render walker and spinner direction.
 - Stop hazards that are about to collide with each other.
 - Player health, death, and reset.
@@ -52,3 +50,5 @@
 - Implement walkers.
 - Make hazards and the player truly take turns.
 - Comments above functions.
+- System for UI elements (info / toggles / etc, automatically spaced).
+- Add direction toggle.

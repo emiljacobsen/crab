@@ -40,6 +40,15 @@ local moved_time = nil
 -- This is +1 for `d` moving clockwise,
 -- -1 for the opposite.
 local move_direction = -1
+local clockwise_key = 'd'
+local ccw_key = 'a'
+local clockwise_index
+local ccw_index
+local dir_toggle_index
+local help_toggle_index
+local disable_help = false
+local highlight_toggle_index
+local disable_highlight = false
 
 -- Runs on startup: 
 function love.load()
@@ -49,8 +58,29 @@ function love.load()
       grid,
       { 0, 0 + ARENA_Y_OFFSET },
       { width, height + ARENA_Y_OFFSET })
-   draw.setup(arena)
+   draw.setup(arena, { height + 40, 10 }, { width, height - 40 })
    ent.setup(grid, str)
+
+   -- Manually add some UI elements
+
+   clockwise_index = draw.add_ui("panel", "text",
+         "Press " .. clockwise_key .. " to go clockwise",
+         { 1, 0, 0 })
+   ccw_index = draw.add_ui("panel", "text",
+         "Press " .. ccw_key .. " to go clockwise",
+         { 0, 1, 0 })
+   draw.add_ui("panel", "text",
+      "Press 's' to flip backwards",
+      { 1, 1, 0 })
+   dir_toggle_index = draw.add_ui("panel", "button",
+      "Press to switch 'a' and 'd'",
+      { 1, 1, 1 })
+   help_toggle_index = draw.add_ui("panel", "button",
+      "Press to toggle help",
+      { 1, 1, 1 })
+   highlight_toggle_index = draw.add_ui("panel", "button",
+      "Press to toggle highlight",
+      { 1, 1, 1 })
 
    -- Manually add some walls and an obstacle (for now)
 
@@ -120,6 +150,28 @@ function love.mousepressed(x, y, button, istouch, presses)
    -- Only interested in left click
    if not button == 1 then return end
 
+   local on_button, zone, key = draw.check_buttons(x, y)
+
+   if on_button then
+      if zone == "panel" then
+         if key == dir_toggle_index then
+            local old_ccw_key = ccw_key
+            ccw_key = clockwise_key
+            clockwise_key = old_ccw_key
+            move_direction = move_direction * -1
+
+            draw.update_ui_text("panel", clockwise_index, 
+               "Press " .. clockwise_key .. " to go clockwise")
+            draw.update_ui_text("panel", ccw_index, 
+               "Press " .. ccw_key .. " to go clockwise")
+         elseif key == help_toggle_index then
+            disable_help = not disable_help
+         elseif key == highlight_toggle_index then
+            disable_highlight = not disable_highlight
+         end
+      end
+   end
+
    local moving_to = nil
    local new_dir = ent.player.dir
 
@@ -156,9 +208,11 @@ end
 function love.draw()
 
    -- Highlight the current hexagon
-   local hex_triords = grid.get_hexagon(ent.player.pos, ent.player.dir)
-   for _, triord in ipairs(hex_triords) do
-      draw.highlight_triangle(triord)
+   if not disable_highlight then
+      local hex_triords = grid.get_hexagon(ent.player.pos, ent.player.dir)
+      for _, triord in ipairs(hex_triords) do
+         draw.highlight_triangle(triord)
+      end
    end
 
    -- Draw the arena
@@ -196,31 +250,15 @@ function love.draw()
       behind = nil
    end
 
+   if disable_help then
+      left, right, behind = nil, nil, nil
+   end
+
    draw.player(ent.player, left, right, behind)
 
    -- Draw UI
 
-   if move_direction == 1 then
-      gfx.setColor(1, 0, 0)
-      local explainer_a = gfx.newText(font, "'a' to go clockwise")
-      gfx.draw(explainer_a, 640, 10)
-
-      gfx.setColor(0, 1, 0)
-      local explainer_d = gfx.newText(font, "'d' to go counter clockwise")
-      gfx.draw(explainer_d, 640, 40)
-   elseif move_direction == -1 then
-      gfx.setColor(1, 0, 0)
-      local explainer_a = gfx.newText(font, "'d' to go clockwise")
-      gfx.draw(explainer_a, 640, 10)
-
-      gfx.setColor(0, 1, 0)
-      local explainer_d = gfx.newText(font, "'a' to go counter clockwise")
-      gfx.draw(explainer_d, 640, 40)
-   end
-
-   gfx.setColor(1, 1, 0)
-   local explainer_s = gfx.newText(font, "'s' to flip backwards")
-   gfx.draw(explainer_s, 640, 70)
+   draw.ui()
 
    -- Debugging message in upper left corner
 

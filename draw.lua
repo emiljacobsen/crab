@@ -6,9 +6,66 @@ local arena = nil
 -- Shorthand
 local gfx = love.graphics
 
--- Needs arena_arg to be the instance of arena set up in main.lua
-function draw.setup(arena_arg)
+
+local font = gfx.newFont("fonts/gerhaus.ttf", 20)
+
+local ui = {
+   panel = {}
+}
+
+local panel_ul
+local panel_lr
+local panel_offset = 30
+local panel_next = 10
+
+-- Needs arena_arg to be the instance of arena set up in main.lua.
+-- The other two args describe the box bounding
+-- the panel of UI elements on the right.
+function draw.setup(arena_arg, panel_ul_arg, panel_lr_arg)
    arena = arena_arg
+   panel_ul = panel_ul_arg
+   panel_lr = panel_lr_arg
+end
+
+function draw.add_ui(zone, type, text1, colour, text2)
+   local elt = {}
+
+   elt.pos = {}
+   elt.pos[1] = panel_ul[1]
+   elt.pos[2] = panel_ul[2] + panel_next
+   panel_next = panel_next + panel_offset
+
+   elt.text = text1
+   elt.type = type
+   elt.colour = colour
+
+   if type == "button" then
+      elt.alt = text2
+   end
+
+   local key = #(ui[zone]) + 1
+
+   ui[zone][key] = elt
+
+   return key
+end
+
+function draw.update_ui_text(zone, key, text)
+   ui[zone][key].text = text
+end
+
+function draw.check_buttons(x, y)
+   for key, elt in pairs(ui.panel) do
+      if elt.type == "button" then
+         if x >= elt.pos[1]
+            and y >= elt.pos[2]
+            and y <= elt.pos[2] + 23
+         then
+            return true, "panel", key
+         end
+      end
+   end
+   return false, nil
 end
 
 -- Draw the player
@@ -138,6 +195,27 @@ function draw.arena()
    local triangles = arena.get_all_triangle_vertices()
    for _, vertices in pairs(triangles) do
       gfx.polygon("line", vertices)
+   end
+end
+
+function draw.ui()
+
+   for _, elt in pairs(ui.panel) do
+      gfx.setColor(elt.colour[1], elt.colour[2], elt.colour[3])
+
+      local x = elt.pos[1]
+      local y = elt.pos[2]
+
+      if elt.type == "text" then
+         gfx.draw(gfx.newText(font, elt.text), x, y)
+      end
+
+      if elt.type == "button" then
+         gfx.draw(gfx.newText(font, elt.text), x+3, y)
+         gfx.rectangle("line", x, y, panel_lr[1]-panel_ul[1], 23)
+      end
+
+      y = y + panel_offset
    end
 end
 
