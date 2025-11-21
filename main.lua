@@ -37,6 +37,10 @@ local can_move = true
 -- When did the player last move?
 local moved_time = nil
 
+-- This is +1 for `d` moving clockwise,
+-- -1 for the opposite.
+local move_direction = -1
+
 -- Runs on startup: 
 function love.load()
 
@@ -76,14 +80,25 @@ function love.keypressed(key)
    local moving_to = nil
    local new_dir = ent.player.dir
 
+   local sign
    if key == 's' then
-      moving_to = grid.get_behind(ent.player.pos, ent.player.dir)
+      sign = 0
    elseif key == 'a' then
-      moving_to = grid.get_left(ent.player.pos, ent.player.dir)
-      new_dir = (ent.player.dir - 1) % 3
+      sign = -1
    elseif key == 'd' then
-      moving_to = grid.get_right(ent.player.pos, ent.player.dir)
-      new_dir = (ent.player.dir + 1) % 3
+      sign = 1
+   end
+
+   if sign ~= nil then
+      sign = move_direction * sign
+      new_dir = (ent.player.dir + sign) % 3
+      if sign == -1 then
+         moving_to = grid.get_left(ent.player.pos, ent.player.dir)
+      elseif sign == 1 then
+         moving_to = grid.get_right(ent.player.pos, ent.player.dir)
+      else
+         moving_to = grid.get_behind(ent.player.pos, ent.player.dir)
+      end
    end
 
    -- TODO: should record the input and move the player once it's ok to move?
@@ -185,13 +200,23 @@ function love.draw()
 
    -- Draw UI
 
-   gfx.setColor(1, 0, 0)
-   local explainer_a = gfx.newText(font, "'a' to go clockwise")
-   gfx.draw(explainer_a, 640, 10)
+   if move_direction == 1 then
+      gfx.setColor(1, 0, 0)
+      local explainer_a = gfx.newText(font, "'a' to go clockwise")
+      gfx.draw(explainer_a, 640, 10)
 
-   gfx.setColor(0, 1, 0)
-   local explainer_d = gfx.newText(font, "'d' to go counter clockwise")
-   gfx.draw(explainer_d, 640, 40)
+      gfx.setColor(0, 1, 0)
+      local explainer_d = gfx.newText(font, "'d' to go counter clockwise")
+      gfx.draw(explainer_d, 640, 40)
+   elseif move_direction == -1 then
+      gfx.setColor(1, 0, 0)
+      local explainer_a = gfx.newText(font, "'d' to go clockwise")
+      gfx.draw(explainer_a, 640, 10)
+
+      gfx.setColor(0, 1, 0)
+      local explainer_d = gfx.newText(font, "'a' to go counter clockwise")
+      gfx.draw(explainer_d, 640, 40)
+   end
 
    gfx.setColor(1, 1, 0)
    local explainer_s = gfx.newText(font, "'s' to flip backwards")
