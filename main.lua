@@ -250,11 +250,13 @@ function love.draw()
       behind = nil
    end
 
-   if disable_help then
-      left, right, behind = nil, nil, nil
+   if not disable_help then
+      draw.dot(left, {1, 0, 0})
+      draw.dot(right, {0, 1, 0})
+      draw.dot(behind, {1, 1, 0})
    end
 
-   draw.player(ent.player, left, right, behind)
+   draw.player(ent.player)
 
    -- Draw UI
 

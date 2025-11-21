@@ -68,32 +68,18 @@ function draw.check_buttons(x, y)
    return false, nil
 end
 
--- Draw the player
-function draw.player(player, left, right, behind)
+-- Draw a dot in the center of a triangle.
+function draw.dot(triord, colour)
+   if triord == nil then return end
 
-   -- Draw dots on player adjacent triangles
-
-   -- The size of the adjacency dots
+   gfx.setColor(colour[1], colour[2], colour[3])
+   local centre = arena.get_centre(triord[1], triord[2], triord[3])
    local dot_size = arena.diametre / 16
-   local centre
+   gfx.circle("fill", centre[1], centre[2], dot_size)
+end
 
-   gfx.setColor(1, 0, 0)
-   if left ~= nil then
-      centre = arena.get_centre(left[1], left[2], left[3])
-      gfx.circle("fill", centre[1], centre[2], dot_size)
-   end
-
-   gfx.setColor(0, 1, 0)
-   if right ~= nil then
-      centre = arena.get_centre(right[1], right[2], right[3])
-      gfx.circle("fill", centre[1], centre[2], dot_size)
-   end
-
-   gfx.setColor(1, 1, 0)
-   if behind ~= nil then
-      centre = arena.get_centre(behind[1], behind[2], behind[3])
-      gfx.circle("fill", centre[1], centre[2], dot_size)
-   end
+-- Draw the player.
+function draw.player(player)
 
    -- The centre of the player's triangle
    local pc = arena.get_centre(player.pos[1], player.pos[2], player.pos[3])
