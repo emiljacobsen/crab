@@ -164,7 +164,7 @@ local function walker_new_pos(walker)
 end
 
 -- Compute the next pos of a hazard.
-local function hazard_new_pos(hazard, type)
+function entities.hazard_new_pos(hazard, type)
    if type == "spinners" then
       return spinner_new_pos(hazard)
    elseif type == "walkers" then
@@ -178,7 +178,7 @@ end
 -- Returns bools `moved`, `attacked`.
 -- The latter is true when the hazard tried to move into the player.
 local function try_move_hazard(hazard, type)
-   local new_pos, new_dir = hazard_new_pos(hazard, type)
+   local new_pos, new_dir = entities.hazard_new_pos(hazard, type)
    if check_player(new_pos) then
       return false, true
    end

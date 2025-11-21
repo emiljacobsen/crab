@@ -123,6 +123,14 @@ function draw.hazards()
       -- Draw a dot where the spinner is looking
 
       gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
+
+      -- Draw a line to the spinner's next position
+      -- TODO: this breaks due to warping. Figure out a better way.
+
+      local np = ent.hazard_new_pos(s, "spinners")
+      looking_at = arena.get_centre(np[1], np[2], np[3])
+      look_line = { c[1], c[2], looking_at[1], looking_at[2] }
+      gfx.line(look_line)
    end
 
    -- Draw the walkers
