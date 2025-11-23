@@ -110,6 +110,9 @@ function love.keypressed(key)
    local moving_to = nil
    local new_dir = ent.player.dir
 
+   -- TODO: refactor to check if key == clockwise_key or ccw_key,
+   --       get rid of then unnecessary sign.
+
    local sign
    if key == 's' then
       sign = 0
