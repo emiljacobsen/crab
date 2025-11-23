@@ -16,6 +16,7 @@
 - Round off wall lines.
 - More juice.
 - Textures.
+- Animations.
 
 ## Ability compass
 
