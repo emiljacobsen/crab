@@ -168,17 +168,17 @@ function draw.hazards()
       local vertex_avoid =
          arena.get_vertex(w.pos[1], w.pos[2], w.pos[3], w.avoid)
 
-      local big = 8
-      local small = 1
-      local denom = big + 2 * small
+      -- Make this bigger for the avoid_line to lie closer to the grid line
+      local close = 8
+      local denom = close + 2
 
-      local start = geo.scale(vertex1, big/denom)
-      start = geo.translate(start, geo.scale(vertex2, small/denom))
-      start = geo.translate(start, geo.scale(vertex_avoid, small/denom))
+      local start = geo.scale(vertex1, close/denom)
+      start = geo.translate(start, geo.scale(vertex2, 1/denom))
+      start = geo.translate(start, geo.scale(vertex_avoid, 1/denom))
 
-      local finish = geo.scale(vertex2, big/denom)
-      finish = geo.translate(finish, geo.scale(vertex1, small/denom))
-      finish = geo.translate(finish, geo.scale(vertex_avoid, small/denom))
+      local finish = geo.scale(vertex2, close/denom)
+      finish = geo.translate(finish, geo.scale(vertex1, 1/denom))
+      finish = geo.translate(finish, geo.scale(vertex_avoid, 1/denom))
 
       local avoid_line = { start[1], start[2], finish[1], finish[2] }
       gfx.setLineWidth(2)
