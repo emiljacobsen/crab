@@ -131,6 +131,10 @@ function entities.move_player(move_to, new_dir)
       -- Stand still
       move_to = entities.player.pos
       new_dir = entities.player.dir
+      -- Play sound
+      eff1:play()
+   else
+      eff2:play()
    end
 
    -- If we got here, the player was able to move.
@@ -195,6 +199,7 @@ end
 local function try_move_hazard(hazard, type)
    local new_pos, new_dir = entities.hazard_new_pos(hazard, type)
    if check_player(new_pos) then
+      eff3:play()
       return false, true, new_pos, new_dir
    end
 

@@ -108,6 +108,15 @@ function love.load()
    str.add_wall({2,-1,3},{2,-2,3})
    str.add_wall({4,0,-1},{4,0,0})
    str.add_obstacle({3,-2,2})
+
+   -- Load sound effects
+
+   eff1 = love.audio.newSource("sounds/eff1.mp3", "static")
+   eff2 = love.audio.newSource("sounds/eff2.mp3", "static")
+   eff3 = love.audio.newSource("sounds/eff3.mp3", "static")
+   woo1 = love.audio.newSource("sounds/woo1.mp3", "static")
+   woo2 = love.audio.newSource("sounds/woo2.mp3", "static")
+
 end
 
 -- Runs every frame:
@@ -118,6 +127,7 @@ function love.update(dt)
          == util.triord_to_string(goal)
       then
          state = states.victory
+         woo2:play()
          return
       end
 
