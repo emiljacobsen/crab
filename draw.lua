@@ -128,6 +128,11 @@ function draw.player()
    gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
 end
 
+function draw.goal(triord)
+   gfx.setColor(1, 1, 0, 0.5)
+   gfx.polygon("fill", arena.get_vertices(triord[1], triord[2], triord[3]))
+end
+
 -- Draw the hazards
 function draw.hazards()
 
@@ -266,6 +271,16 @@ function draw.ui()
       end
 
       y = y + panel_offset
+   end
+
+   function draw.dead()
+      gfx.setColor(1, 1, 1)
+      gfx.print("You are dead.", 10, 10)
+   end
+
+   function draw.victory()
+      gfx.setColor(1, 1, 1)
+      gfx.print("You are victorious!", 10, 10)
    end
 end
 

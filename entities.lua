@@ -109,6 +109,7 @@ end
 -- The time is the current time,
 -- and the bool is true if the player
 -- was able to move to `move_to`.
+-- Also returns true if the player attacked instead of moved.
 function entities.move_player(move_to, new_dir)
 
    if move_to == nil then
@@ -119,14 +120,17 @@ function entities.move_player(move_to, new_dir)
 
    if str.check_obstacle(move_to)
       or str.check_wall(entities.player.pos, move_to)
-      or hazard_blocking
+      -- or hazard_blocking
    then
-      if hazard_blocking then
-         -- Kill the hazard the player walked into
-         entities.hazards[hazard_type][hazard_key] = nil
-      end
-
       return false, love.timer.getTime()
+   end
+
+   if hazard_blocking then
+      -- Kill the hazard the player walked into
+      entities.hazards[hazard_type][hazard_key] = nil
+      -- Stand still
+      move_to = entities.player.pos
+      new_dir = entities.player.dir
    end
 
    -- If we got here, the player was able to move.

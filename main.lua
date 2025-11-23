@@ -45,10 +45,26 @@ local ccw_key = 'a'
 local clockwise_index
 local ccw_index
 local dir_toggle_index
+
 local help_toggle_index
 local disable_help = false
+
 local highlight_toggle_index
 local disable_highlight = false
+
+local states = {
+   main_menu = "main menu",
+   playing = "playing",
+   dead = "dead",
+   victory = "victory"
+}
+local state = states.playing
+
+local goal = { 4, -1, 1 }
+
+local function start_play()
+   ent.setup(grid, str)
+end
 
 -- Runs on startup: 
 function love.load()
@@ -96,16 +112,35 @@ end
 
 -- Runs every frame:
 function love.update(dt)
-   if moved and love.timer.getTime() - moved_time > 0.1 then
-      ent.move_hazards()
+   if state == states.playing then
 
-      moved = false
-      can_move = true
+      if util.triord_to_string(ent.player.pos)
+         == util.triord_to_string(goal)
+      then
+         state = states.victory
+         return
+      end
+
+      if moved and love.timer.getTime() - moved_time > 0.1 then
+         ent.move_hazards()
+         if ent.player.health < 1 then
+            state = states.dead
+         end
+
+         moved = false
+         can_move = true
+      end
    end
 end
 
 -- Callback function for keypresses
 function love.keypressed(key)
+
+   if state == states.dead or state == states.victory then
+      state = states.playing
+      start_play()
+      return
+   end
 
    local moving_to = nil
    local new_dir = ent.player.dir
@@ -149,6 +184,11 @@ end
 
 -- Runs when a mouse button is pressed
 function love.mousepressed(x, y, button, istouch, presses)
+
+   if state == states.dead then
+      state = states.playing
+      return
+   end
 
    -- Only interested in left click
    if not button == 1 then return end
@@ -209,74 +249,85 @@ function love.mousepressed(x, y, button, istouch, presses)
 end
 
 function love.draw()
+   if state == states.playing then
 
-   -- Highlight the current hexagon
-   if not disable_highlight then
-      local hex_triords = grid.get_hexagon(ent.player.pos, ent.player.dir)
-      for _, triord in ipairs(hex_triords) do
-         draw.highlight_triangle(triord)
+      -- Highlight the current hexagon
+      if not disable_highlight then
+         local hex_triords = grid.get_hexagon(ent.player.pos, ent.player.dir)
+         for _, triord in ipairs(hex_triords) do
+            draw.highlight_triangle(triord)
+         end
       end
+
+      -- Highlight the goal triangle
+      draw.goal(goal)
+
+      -- Draw the arena
+      draw.arena()
+
+      -- Draw walls
+      draw.walls(str.get_walls())
+
+      -- Draw obstacles
+      draw.obstacles(str.get_obstacles())
+
+      -- Draw hazards
+      draw.hazards(ent.hazards)
+
+      -- Draw the player (need to pass on adjacent, accessible triords)
+
+      local left = grid.get_left(ent.player.pos, ent.player.dir)
+      if str.check_wall(ent.player.pos, left)
+         or str.check_obstacle(left)
+      then
+         left = nil
+      end
+
+      local right = grid.get_right(ent.player.pos, ent.player.dir)
+      if str.check_wall(ent.player.pos, right)
+         or str.check_obstacle(right)
+      then
+         right = nil
+      end
+
+      local behind = grid.get_behind(ent.player.pos, ent.player.dir)
+      if str.check_wall(ent.player.pos, behind)
+         or str.check_obstacle(behind)
+      then
+         behind = nil
+      end
+
+      if not disable_help then
+         draw.dot(left, {1, 0, 0})
+         draw.dot(right, {0, 1, 0})
+         draw.dot(behind, {1, 1, 0})
+      end
+
+      draw.player(ent.player)
+
+      -- Draw UI
+
+      draw.ui()
+
+      -- Debugging message in upper left corner
+
+      local mouse_x, mouse_y = love.mouse.getPosition()
+
+      gfx.setColor(1, 1, 1)
+      local test = arena.coord_to_triord(mouse_x, mouse_y)
+      local debug_string =
+         "h: " .. test[1]
+         .. " ; " ..
+         "f: " .. test[2]
+         .. " ; " ..
+         "b: " .. test[3]
+      local debug_text = gfx.newText(font, debug_string)
+      gfx.draw(debug_text, 10, 10)
+
+   elseif state == states.dead then
+      draw.dead()
+   elseif state == states.victory then
+      draw.victory()
    end
 
-   -- Draw the arena
-   draw.arena()
-
-   -- Draw walls
-   draw.walls(str.get_walls())
-
-   -- Draw obstacles
-   draw.obstacles(str.get_obstacles())
-
-   -- Draw hazards
-   draw.hazards(ent.hazards)
-
-   -- Draw the player (need to pass on adjacent, accessible triords)
-
-   local left = grid.get_left(ent.player.pos, ent.player.dir)
-   if str.check_wall(ent.player.pos, left)
-      or str.check_obstacle(left)
-   then
-      left = nil
-   end
-
-   local right = grid.get_right(ent.player.pos, ent.player.dir)
-   if str.check_wall(ent.player.pos, right)
-      or str.check_obstacle(right)
-   then
-      right = nil
-   end
-
-   local behind = grid.get_behind(ent.player.pos, ent.player.dir)
-   if str.check_wall(ent.player.pos, behind)
-      or str.check_obstacle(behind)
-   then
-      behind = nil
-   end
-
-   if not disable_help then
-      draw.dot(left, {1, 0, 0})
-      draw.dot(right, {0, 1, 0})
-      draw.dot(behind, {1, 1, 0})
-   end
-
-   draw.player(ent.player)
-
-   -- Draw UI
-
-   draw.ui()
-
-   -- Debugging message in upper left corner
-
-   local mouse_x, mouse_y = love.mouse.getPosition()
-
-   gfx.setColor(1, 1, 1)
-   local test = arena.coord_to_triord(mouse_x, mouse_y)
-   local debug_string =
-      "h: " .. test[1]
-      .. " ; " ..
-      "f: " .. test[2]
-      .. " ; " ..
-      "b: " .. test[3]
-   local debug_text = gfx.newText(font, debug_string)
-   gfx.draw(debug_text, 10, 10)
 end

@@ -2,11 +2,9 @@
 
 ## Minimum viable
 
-- Player health, death, and reset.
-- Spawn, goal, and congratulatory message.
-- Random enemies and structures.
 - Sound effects.
 - A little bit of screen shake or something.
+- Random enemies and structures.
 
 ## Extra
 
@@ -52,3 +50,5 @@
 - Add direction toggle.
 - Render walker and spinner direction.
 - Stop hazards that are about to collide with each other.
+- Player health, death, and reset.
+- Spawn, goal, and congratulatory message.
