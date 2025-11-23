@@ -56,6 +56,11 @@ function entities.setup(grid_arg, structure_arg)
             pos = { 5, 0, -1 },
             dir = grid.dirs.h,
             sign = 1
+         },
+         {
+            pos = { 3, -3, 4 },
+            dir = grid.dirs.f,
+            sign = 1
          }
       },
 
@@ -86,7 +91,6 @@ end
 -- The two strings identify the hazard
 -- (as entities.hazards[type][key]).
 local function check_hazard(triord)
-
    for type, hazards in pairs(entities.hazards) do
       for key, hazard in pairs(hazards) do
          if util.triord_to_string(triord)
@@ -182,42 +186,56 @@ function entities.hazard_new_pos(hazard, type)
 end
 
 -- Try to move a hazard.
--- Returns bools `moved`, `attacked`.
+-- Returns bools `moved`, `attacked`, newpos.
 -- The latter is true when the hazard tried to move into the player.
 local function try_move_hazard(hazard, type)
    local new_pos, new_dir = entities.hazard_new_pos(hazard, type)
    if check_player(new_pos) then
-      return false, true
+      return false, true, new_pos, new_dir
    end
 
    if not str.check_obstacle(new_pos)
       and not str.check_wall(hazard.pos, new_pos)
       and not check_player(new_pos)
    then
-      hazard.pos = new_pos
-      hazard.dir = new_dir
-      return true, false
+      return true, false, new_pos, new_dir
    else
-      return false, false
+      return false, false, new_pos, new_dir
    end
 end
 
 -- (Try to) move all hazards
 function entities.move_hazards()
+   local new_pos_set = {}
 
    for type, hazards in pairs(entities.hazards) do
-      for _, h in pairs(hazards) do
-         local moved, attacked = try_move_hazard(h, type)
+
+      for key, h in pairs(hazards) do
+
+         local moved, attacked, new_pos, new_dir
+            = try_move_hazard(h, type)
+
+         local aux = new_pos_set[util.triord_to_string(new_pos)]
+         if aux then
+            moved = false
+         end
 
          -- If there was a collision, try to go the other way
          if not moved and not attacked then
             h.sign = -1 * h.sign
-            moved, attacked = try_move_hazard(h, type)
+            moved, attacked, new_pos, new_dir = try_move_hazard(h, type)
          end
 
          if attacked then
             entities.player.health = entities.player.health - 1
          end
+
+         if moved == true then
+            new_pos_set[util.triord_to_string(new_pos)] = { type, key }
+            h.pos = new_pos
+            h.dir = new_dir
+         end
+
       end
    end
 end
@@ -232,16 +250,6 @@ function entities.hazard_going_towards(hazard, type)
    else
       error("Bad hazard type: " .. type)
    end
-end
-
--- Compute the directions to the vertices on the line the walker is avoiding.
-function entities.walker_avoid_line(walker)
-   -- local dir1 = (walker_going_towards(walker) + 1) % 3
-   -- local dir2 = (walker_going_towards(walker) - 1) % 3
-
-   local dir1 = (walker.avoid + 1) % 3
-   local dir2 = (walker.avoid - 1) % 3
-   return dir1, dir2
 end
 
 return entities
