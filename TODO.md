@@ -2,7 +2,6 @@
 
 ## Minimum viable
 
-- Sound effects.
 - A little bit of screen shake or something.
 - Random enemies and structures.
 
@@ -52,3 +51,4 @@
 - Stop hazards that are about to collide with each other.
 - Player health, death, and reset.
 - Spawn, goal, and congratulatory message.
+- Sound effects.
