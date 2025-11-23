@@ -133,34 +133,40 @@ function entities.move_player(move_to, new_dir)
    return true, love.timer.getTime()
 end
 
+-- Compute the direction the spinner is going to try to move in.
+local function spinner_going_towards(spinner)
+   return (spinner.dir - spinner.sign) % 3
+end
+
 -- Compute the next pos of a spinner.
 -- Returns `new_pos`, `new_dir`, where
 -- `new_pos` is a triordinate { h, f, b },
 -- `new_dir` is a member of `grid.dirs`
 local function spinner_new_pos(spinner)
-   local new_pos = nil
-
-   if spinner.sign == 1 then 
-      new_pos = grid.get_right(spinner.pos, spinner.dir)
-   elseif spinner.sign == -1 then
-      new_pos = grid.get_left(spinner.pos, spinner.dir)
-   end
+   local new_pos = grid.get_adjacent(
+      spinner.pos[1],
+      spinner.pos[2],
+      spinner.pos[3],
+      spinner_going_towards(spinner))
 
    return new_pos, (spinner.dir + spinner.sign) % 3
+end
+
+-- Compute the direction the walker is going to try to move in.
+local function walker_going_towards(walker)
+   local sign =
+      walker.sign * grid.get_sign(walker.pos[1], walker.pos[2], walker.pos[3])
+   return (walker.avoid + sign) % 3
 end
 
 -- Compute the next pos of a walker.
 -- Returns a triordinate { h, f, b }.
 local function walker_new_pos(walker)
-   local sign =
-      walker.sign * grid.get_sign(walker.pos[1], walker.pos[2], walker.pos[3])
-   local move_dir = (walker.avoid + sign) % 3
    return grid.get_adjacent(
       walker.pos[1],
       walker.pos[2],
       walker.pos[3],
-      move_dir
-   )
+      walker_going_towards(walker))
 end
 
 -- Compute the next pos of a hazard.
@@ -213,6 +219,28 @@ function entities.move_hazards()
          end
       end
    end
+end
+
+-- Returns the grid.dirs value corresponding to
+-- which line the hazard is about to try and cross.
+function entities.hazard_going_towards(hazard, type)
+   if type == "spinners" then
+      return spinner_going_towards(hazard)
+   elseif type == "walkers" then
+      return walker_going_towards(hazard)
+   else
+      error("Bad hazard type: " .. type)
+   end
+end
+
+-- Compute the directions to the vertices on the line the walker is avoiding.
+function entities.walker_avoid_line(walker)
+   -- local dir1 = (walker_going_towards(walker) + 1) % 3
+   -- local dir2 = (walker_going_towards(walker) - 1) % 3
+
+   local dir1 = (walker.avoid + 1) % 3
+   local dir2 = (walker.avoid - 1) % 3
+   return dir1, dir2
 end
 
 return entities

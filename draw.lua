@@ -1,5 +1,9 @@
 local draw = {}
 
+-- Imports
+
+local geo = require "geometry"
+
 -- I need the instance of arena set up in main.lua
 local arena = nil
 -- Same with entities
@@ -124,13 +128,13 @@ function draw.hazards()
 
       gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
 
-      -- Draw a line to the spinner's next position
-      -- TODO: this breaks due to warping. Figure out a better way.
+      -- Draw a line towards the spinner's next position
 
-      local np = ent.hazard_new_pos(s, "spinners")
-      looking_at = arena.get_centre(np[1], np[2], np[3])
+      local looking_dir = (s.dir - s.sign) % 3
+      looking_at = arena.get_mid(s.pos[1], s.pos[2], s.pos[3], looking_dir)
       look_line = { c[1], c[2], looking_at[1], looking_at[2] }
       gfx.line(look_line)
+      gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
    end
 
    -- Draw the walkers
@@ -144,17 +148,42 @@ function draw.hazards()
       gfx.circle("fill", c[1], c[2], arena.side / 10)
 
       -- Indicate where the walker is "looking"
-      -- TODO: change this to the center of the walker's next triangle.
       -- First with a line:
 
+      local move_dir = ent.hazard_going_towards(w, "walkers")
       local looking_at =
-         arena.get_vertex(w.pos[1], w.pos[2], w.pos[3], w.avoid)
+         arena.get_mid(w.pos[1], w.pos[2], w.pos[3], move_dir)
       local look_line = { c[1], c[2], looking_at[1], looking_at[2] }
       gfx.line(look_line)
 
-      -- Then a dot where the spinner is looking
+      -- Then a dot where the walker is looking
       gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
 
+      -- Indicate what the walker is avoiding.
+
+      local dir1 = (w.avoid + 1) % 3
+      local dir2 = (w.avoid - 1) % 3
+      local vertex1 = arena.get_vertex(w.pos[1], w.pos[2], w.pos[3], dir1)
+      local vertex2 = arena.get_vertex(w.pos[1], w.pos[2], w.pos[3], dir2)
+      local vertex_avoid =
+         arena.get_vertex(w.pos[1], w.pos[2], w.pos[3], w.avoid)
+
+      local big = 8
+      local small = 1
+      local denom = big + 2 * small
+
+      local start = geo.scale(vertex1, big/denom)
+      start = geo.translate(start, geo.scale(vertex2, small/denom))
+      start = geo.translate(start, geo.scale(vertex_avoid, small/denom))
+
+      local finish = geo.scale(vertex2, big/denom)
+      finish = geo.translate(finish, geo.scale(vertex1, small/denom))
+      finish = geo.translate(finish, geo.scale(vertex_avoid, small/denom))
+
+      local avoid_line = { start[1], start[2], finish[1], finish[2] }
+      gfx.setLineWidth(2)
+      gfx.line(avoid_line)
+      gfx.setLineWidth(1)
    end
 end
 

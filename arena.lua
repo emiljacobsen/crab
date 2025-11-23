@@ -230,6 +230,45 @@ function arena.get_vertex(h, f, b, dir)
    end
 end
 
+-- Get the mid point of the h line.
+-- Returns { x, y }.
+function arena.get_h_mid(h, f, b)
+   local centre = arena.get_centre(h, f, b)
+   local vertex = arena.get_h_vertex(h, f, b)
+   local mid = geo.scale(geo.translate(centre, geo.scale(vertex, -1/3)), 3/2)
+   return { mid[1], mid[2] }
+end
+
+-- Get the mid point of the f line.
+-- Returns { x, y }.
+function arena.get_f_mid(h, f, b)
+   local centre = arena.get_centre(h, f, b)
+   local vertex = arena.get_f_vertex(h, f, b)
+   local mid = geo.scale(geo.translate(centre, geo.scale(vertex, -1/3)), 3/2)
+   return { mid[1], mid[2] }
+end
+
+-- Get the mid point of the b line.
+-- Returns { x, y }.
+function arena.get_b_mid(h, f, b)
+   local centre = arena.get_centre(h, f, b)
+   local vertex = arena.get_b_vertex(h, f, b)
+   local mid = geo.scale(geo.translate(centre, geo.scale(vertex, -1/3)), 3/2)
+   return { mid[1], mid[2] }
+end
+
+-- Get the mid point of the `dir` line.
+-- Returns { x, y }
+function arena.get_mid(h, f, b, dir)
+   if dir == grid.dirs.h then
+      return arena.get_h_mid(h, f, b)
+   elseif dir == grid.dirs.f then
+      return arena.get_f_mid(h, f, b)
+   elseif dir == grid.dirs.b then
+      return arena.get_b_mid(h, f, b)
+   end
+end
+
 -- Get all vertices of all triangles
 -- Returns an array of arrays
 -- { { x1, y1, x2, y2, x3, y3 }, ... }
