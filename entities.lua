@@ -34,7 +34,8 @@ function entities.setup(grid_arg, structure_arg)
    -- Set the initial player position.
    entities.player = {
       pos = { 1, 1, 1 },
-      dir = grid.dirs.h
+      dir = grid.dirs.h,
+      health = 2
    }
 
    -- Manually populate hazards, for now.
@@ -215,7 +216,7 @@ function entities.move_hazards()
          end
 
          if attacked then
-            -- TODO
+            entities.player.health = entities.player.health - 1
          end
       end
    end

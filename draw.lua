@@ -12,8 +12,8 @@ local ent = nil
 -- Shorthand
 local gfx = love.graphics
 
-
 local font = gfx.newFont("fonts/gerhaus.ttf", 20)
+gfx.setFont(font)
 
 local ui = {
    panel = {}
@@ -96,12 +96,33 @@ function draw.player()
    gfx.setColor(1, 1, 1)
    gfx.circle("line", pc[1], pc[2], arena.side/6)
 
+   -- Draw the player's health
+   -- TODO: this newText is slow, but I don't know how else to get the width.
+   local health_text = gfx.newText(font, ent.player.health)
+   local health_w, health_h = health_text:getDimensions()
+   -- gfx.draw(
+   --    health_text,
+   --    math.floor(pc[1]-health_w/2),
+   --    math.floor(pc[2]-health_h/2))
+   gfx.print(ent.player.health, 
+      math.floor(pc[1]-health_w/2),
+      math.floor(pc[2]-health_h/2))
+
    -- Draw a line from the circle to where the player is looking
    local looking_at = arena.get_vertex(
       ent.player.pos[1],
-      ent.player.pos[2], ent.player.pos[3],
+      ent.player.pos[2],
+      ent.player.pos[3],
       ent.player.dir)
-   gfx.line(pc[1], pc[2], looking_at[1], looking_at[2])
+   local looking_vec
+      = geo.line_to_vec(
+         pc[1], pc[2],
+         looking_at[1], looking_at[2])
+   local looking_from
+      = geo.translate(
+         pc,
+         geo.scale(looking_vec, arena.side/ 6 / geo.norm(looking_vec)))
+   gfx.line(looking_from[1], looking_from[2], looking_at[1], looking_at[2])
 
    -- Draw a white point where the player is looking
    gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
@@ -232,12 +253,16 @@ function draw.ui()
       local y = elt.pos[2]
 
       if elt.type == "text" then
-         gfx.draw(gfx.newText(font, elt.text), x, y)
+         gfx.print({ {gfx.getColor()}, elt.text }, x, y)
       end
 
       if elt.type == "button" then
-         gfx.draw(gfx.newText(font, elt.text), x+3, y)
-         gfx.rectangle("line", x, y, panel_lr[1]-panel_ul[1], 23)
+         gfx.print({ {gfx.getColor()}, elt.text }, x+3, y)
+         gfx.rectangle("line",
+            x,
+            y,
+            panel_lr[1]-panel_ul[1],
+            font:getHeight() + 2)
       end
 
       y = y + panel_offset
