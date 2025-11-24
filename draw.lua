@@ -138,78 +138,82 @@ function draw.hazards()
 
    -- Draw the spinners
 
-   gfx.setColor(1, 0.5, 0)
-   for _, s in pairs(ent.hazards.spinners) do
-      local c = arena.get_centre(s.pos[1], s.pos[2], s.pos[3])
+   for type, hazards in pairs(ent.hazards) do
+      for _, h in pairs(hazards) do
+         if type == "spinners" then
+            gfx.setColor(1, 0.5, 0)
 
-      -- Draw a circle where the spinner is
-      gfx.circle("fill", c[1], c[2], arena.side / 10)
+            local c = arena.get_centre(h.pos[1], h.pos[2], h.pos[3])
 
-      -- Draw a line from the circle to where the spinner is looking
-      local looking_at = arena.get_vertex(s.pos[1], s.pos[2], s.pos[3], s.dir)
-      local look_line = { c[1], c[2], looking_at[1], looking_at[2] }
-      gfx.line(look_line)
+            -- Draw a circle where the spinner is
+            gfx.circle("fill", c[1], c[2], arena.side / 10)
 
-      -- Draw a dot where the spinner is looking
+            -- Draw a line from the circle to where the spinner is looking
+            local looking_at = arena.get_vertex(h.pos[1], h.pos[2], h.pos[3], h.dir)
+            local look_line = { c[1], c[2], looking_at[1], looking_at[2] }
+            gfx.line(look_line)
 
-      gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
+            -- Draw a dot where the spinner is looking
 
-      -- Draw a line towards the spinner's next position
+            gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
 
-      local looking_dir = (s.dir - s.sign) % 3
-      looking_at = arena.get_mid(s.pos[1], s.pos[2], s.pos[3], looking_dir)
-      look_line = { c[1], c[2], looking_at[1], looking_at[2] }
-      gfx.line(look_line)
-      gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
-   end
+            -- Draw a line towards the spinner's next position
 
-   -- Draw the walkers
+            local looking_dir = (h.dir - h.sign) % 3
+            looking_at = arena.get_mid(h.pos[1], h.pos[2], h.pos[3], looking_dir)
+            look_line = { c[1], c[2], looking_at[1], looking_at[2] }
+            gfx.line(look_line)
+            gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
 
-   gfx.setColor(0.7, 0.2, 0.5)
-   for _, w in pairs(ent.hazards.walkers) do
-      -- The centre of the walker's triangle
-      local c = arena.get_centre(w.pos[1], w.pos[2], w.pos[3])
+         -- Draw the walkers
+         elseif type == "walkers" then
+            gfx.setColor(0.7, 0.2, 0.5)
 
-      -- Draw the walker itself
-      gfx.circle("fill", c[1], c[2], arena.side / 10)
+            -- The centre of the walker's triangle
+            local c = arena.get_centre(h.pos[1], h.pos[2], h.pos[3])
 
-      -- Indicate where the walker is "looking"
-      -- First with a line:
+            -- Draw the walker itself
+            gfx.circle("fill", c[1], c[2], arena.side / 10)
 
-      local move_dir = ent.hazard_going_towards(w, "walkers")
-      local looking_at =
-         arena.get_mid(w.pos[1], w.pos[2], w.pos[3], move_dir)
-      local look_line = { c[1], c[2], looking_at[1], looking_at[2] }
-      gfx.line(look_line)
+            -- Indicate where the walker is "looking"
+            -- First with a line:
 
-      -- Then a dot where the walker is looking
-      gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
+            local move_dir = ent.hazard_going_towards(h, "walkers")
+            local looking_at =
+               arena.get_mid(h.pos[1], h.pos[2], h.pos[3], move_dir)
+            local look_line = { c[1], c[2], looking_at[1], looking_at[2] }
+            gfx.line(look_line)
 
-      -- Indicate what the walker is avoiding.
+            -- Then a dot where the walker is looking
+            gfx.circle("fill", looking_at[1], looking_at[2], arena.side / 20)
 
-      local dir1 = (w.avoid + 1) % 3
-      local dir2 = (w.avoid - 1) % 3
-      local vertex1 = arena.get_vertex(w.pos[1], w.pos[2], w.pos[3], dir1)
-      local vertex2 = arena.get_vertex(w.pos[1], w.pos[2], w.pos[3], dir2)
-      local vertex_avoid =
-         arena.get_vertex(w.pos[1], w.pos[2], w.pos[3], w.avoid)
+            -- Indicate what the walker is avoiding.
 
-      -- Make this bigger for the avoid_line to lie closer to the grid line
-      local close = 8
-      local denom = close + 2
+            local dir1 = (h.avoid + 1) % 3
+            local dir2 = (h.avoid - 1) % 3
+            local vertex1 = arena.get_vertex(h.pos[1], h.pos[2], h.pos[3], dir1)
+            local vertex2 = arena.get_vertex(h.pos[1], h.pos[2], h.pos[3], dir2)
+            local vertex_avoid =
+               arena.get_vertex(h.pos[1], h.pos[2], h.pos[3], h.avoid)
 
-      local start = geo.scale(vertex1, close/denom)
-      start = geo.translate(start, geo.scale(vertex2, 1/denom))
-      start = geo.translate(start, geo.scale(vertex_avoid, 1/denom))
+            -- Make this bigger for the avoid_line to lie closer to the grid line
+            local close = 8
+            local denom = close + 2
 
-      local finish = geo.scale(vertex2, close/denom)
-      finish = geo.translate(finish, geo.scale(vertex1, 1/denom))
-      finish = geo.translate(finish, geo.scale(vertex_avoid, 1/denom))
+            local start = geo.scale(vertex1, close/denom)
+            start = geo.translate(start, geo.scale(vertex2, 1/denom))
+            start = geo.translate(start, geo.scale(vertex_avoid, 1/denom))
 
-      local avoid_line = { start[1], start[2], finish[1], finish[2] }
-      gfx.setLineWidth(2)
-      gfx.line(avoid_line)
-      gfx.setLineWidth(1)
+            local finish = geo.scale(vertex2, close/denom)
+            finish = geo.translate(finish, geo.scale(vertex1, 1/denom))
+            finish = geo.translate(finish, geo.scale(vertex_avoid, 1/denom))
+
+            local avoid_line = { start[1], start[2], finish[1], finish[2] }
+            gfx.setLineWidth(2)
+            gfx.line(avoid_line)
+            gfx.setLineWidth(1)
+         end
+      end
    end
 end
 

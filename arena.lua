@@ -285,6 +285,7 @@ function arena.get_all_triangle_vertices()
    return triangles
 end
 
+-- TODO: improve to also handle border/warp walls.
 -- Returns the line between the (adjacent) triangles at
 -- triordinates triord1 and triord2.
 -- The triords are arrays { h, f, b }.

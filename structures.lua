@@ -12,6 +12,11 @@ local walls = {}
 -- A list of triordinates { { h, f, b }, ... }.
 local obstacles = {}
 
+function structures.reset()
+   walls = {}
+   obstacles = {}
+end
+
 -- Convert a wall pair to a string.
 -- Returns a string.
 local function wall_pair_to_string(triord1, triord2)

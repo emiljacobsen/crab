@@ -60,10 +60,125 @@ local states = {
 }
 local state = states.playing
 
-local goal = { 4, -1, 1 }
+local level = 1
+
+local goal
 
 local function start_play()
-   ent.setup(grid, str)
+
+   if level == 3 then -- Hidden test level (set to 3 temp) TODO
+      -- Manually add some walls and an obstacle (for now)
+
+      str.reset()
+
+      str.add_wall({1, 1, 1}, {2, 1, 1})
+      str.add_wall({1, 1, 2}, {1, 0, 2})
+      str.add_wall({4,-1,1}, {4,-2,1})
+      str.add_wall({4,-1,0}, {4,0,0})
+      str.add_wall({3,-1,1},{3,0,1})
+      str.add_wall({2,-1,3},{2,-2,3})
+      str.add_wall({4,0,-1},{4,0,0})
+      str.add_obstacle({3,-2,2})
+
+      -- Set up entities
+
+      ent.spawn(level)
+
+      goal = { 4, -1, 1 }
+
+   elseif level == 1 then
+
+      ent.spawn(level)
+
+      str.reset()
+
+      -- fhi
+      str.add_wall({2,1,1},{2,0,1})
+      str.add_wall({3,1,0},{3,0,0})
+
+      -- flo
+      str.add_wall({4,-4,3},{4,-3,3})
+      str.add_wall({5,-4,2},{5,-3,2})
+
+      -- hhi
+      str.add_wall({1,0,2},{2,0,2})
+      str.add_wall({1,-1,3},{2,-1,3})
+
+      -- hlo
+      str.add_wall({6,-2,0},{5,-2,0})
+      str.add_wall({6,-3,1},{5,-3,1})
+
+      -- bhi
+      str.add_wall({2,-2,3},{2,-2,4})
+      str.add_wall({3,-3,3},{3,-3,4})
+
+      -- blo
+      str.add_wall({4,0,0},{4,0,-1})
+      str.add_wall({5,-1,0},{5,-1,-1})
+
+      goal = { 5, -3, 2 }
+
+   elseif level == 2 then
+
+      ent.spawn(level)
+
+      str.reset()
+
+      str.add_wall({1,1,1},{1,1,2})
+      str.add_wall({1,1,1},{2,1,1})
+
+      str.add_wall({4,-4,4},{3,-4,4})
+      str.add_wall({4,-4,3},{4,-3,3})
+      str.add_wall({5,-4,2},{5,-4,3})
+
+      -- blo
+      str.add_wall({4,0,0},{4,0,-1})
+      str.add_wall({5,-1,0},{5,-1,-1})
+      str.add_wall({3,1,0},{3,1,-1})
+
+      -- flo
+      str.add_wall({4,-4,3},{4,-3,3})
+      str.add_wall({5,-4,2},{5,-3,2})
+
+      -- hhi
+      str.add_wall({1,0,2},{2,0,2})
+      str.add_wall({1,-1,3},{2,-1,3})
+
+      -- hlo
+      str.add_wall({6,-2,0},{5,-2,0})
+      str.add_wall({6,-3,1},{5,-3,1})
+
+      -- bhi
+      str.add_wall({2,-2,3},{2,-2,4})
+      str.add_wall({3,-3,3},{3,-3,4})
+
+      goal = { 5, -3, 2 }
+
+   elseif level == 3 then
+
+      ent.spawn(level)
+
+      str.reset()
+
+      goal = { 4, -1, 1 }
+
+   elseif level == 4 then
+
+      ent.spawn(level)
+
+      str.reset()
+
+      goal = { 4, -1, 1 }
+
+   elseif level == 5 then
+
+      ent.spawn(level)
+
+      str.reset()
+
+      goal = { 4, -1, 1 }
+
+   end
 end
 
 SCREEN_SHAKE = false
@@ -101,17 +216,6 @@ function love.load()
       "Press to toggle highlight",
       { 1, 1, 1 })
 
-   -- Manually add some walls and an obstacle (for now)
-
-   str.add_wall({1, 1, 1}, {2, 1, 1})
-   str.add_wall({1, 1, 2}, {1, 0, 2})
-   str.add_wall({4,-1,1}, {4,-2,1})
-   str.add_wall({4,-1,0}, {4,0,0})
-   str.add_wall({3,-1,1},{3,0,1})
-   str.add_wall({2,-1,3},{2,-2,3})
-   str.add_wall({4,0,-1},{4,0,0})
-   str.add_obstacle({3,-2,2})
-
    -- Load sound effects
 
    eff1 = love.audio.newSource("sounds/eff1.mp3", "static")
@@ -119,8 +223,9 @@ function love.load()
    eff3 = love.audio.newSource("sounds/eff3.mp3", "static")
    woo1 = love.audio.newSource("sounds/woo1.mp3", "static")
    woo2 = love.audio.newSource("sounds/woo2.mp3", "static")
-   woo2:setVolume(0.2)
+   woo2:setVolume(0.1)
 
+   start_play()
 end
 
 -- Runs every frame:
@@ -130,14 +235,22 @@ function love.update(dt)
       if util.triord_to_string(ent.player.pos)
          == util.triord_to_string(goal)
       then
-         state = states.victory
+         woo2:stop()
          woo2:play()
+         if level == 3 then
+            state = states.victory
+         else
+            level = level + 1
+            start_play()
+            state = states.playing
+         end
          return
       end
 
       if moved and love.timer.getTime() - moved_time > 0.1 then
          ent.move_hazards()
          if ent.player.health < 1 then
+            level = 1
             state = states.dead
          end
 
@@ -150,7 +263,7 @@ end
 -- Callback function for keypresses
 function love.keypressed(key)
 
-   if state == states.dead or state == states.victory then
+   if state == states.dead then -- or state == states.victory then
       state = states.playing
       start_play()
       return
@@ -192,7 +305,19 @@ function love.keypressed(key)
    -- Put debug info here.
    if key == 'space' then
       print("Pressed space")
-      print("Current triords:", table.concat(ent.player.pos, ", "))
+
+      local mouse_x, mouse_y = love.mouse.getPosition()
+
+      gfx.setColor(1, 1, 1)
+      local test = arena.coord_to_triord(mouse_x, mouse_y)
+      local debug_string =
+         "h: " .. test[1]
+         .. " ; " ..
+         "f: " .. test[2]
+         .. " ; " ..
+         "b: " .. test[3]
+
+      print("Mouse triords:", debug_string)
    end
 end
 
@@ -338,18 +463,21 @@ function love.draw()
 
       -- Debugging message in upper left corner
 
-      local mouse_x, mouse_y = love.mouse.getPosition()
+      -- local mouse_x, mouse_y = love.mouse.getPosition()
+
+      -- gfx.setColor(1, 1, 1)
+      -- local test = arena.coord_to_triord(mouse_x, mouse_y)
+      -- local debug_string =
+      --    "h: " .. test[1]
+      --    .. " ; " ..
+      --    "f: " .. test[2]
+      --    .. " ; " ..
+      --    "b: " .. test[3]
+      -- local debug_text = gfx.newText(font, debug_string)
+      -- gfx.draw(debug_text, 10, 10)
 
       gfx.setColor(1, 1, 1)
-      local test = arena.coord_to_triord(mouse_x, mouse_y)
-      local debug_string =
-         "h: " .. test[1]
-         .. " ; " ..
-         "f: " .. test[2]
-         .. " ; " ..
-         "b: " .. test[3]
-      local debug_text = gfx.newText(font, debug_string)
-      gfx.draw(debug_text, 10, 10)
+      gfx.print("Level " .. level, 10, 10)
 
    elseif state == states.dead then
       draw.dead()

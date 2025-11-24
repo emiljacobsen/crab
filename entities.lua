@@ -23,61 +23,174 @@ entities.player = nil
 -- The latter takes one of the `grid.dirs` values,
 -- and records which type of line to avoid crossing.
 -- It then moves in its lane, in a direction set by `sign`.
-entities.hazards = nil
+entities.hazards = {}
 
 -- Need grid_arg and structure_arg to be the instances
 -- of grid and structure from main.lua.
 function entities.setup(grid_arg, structure_arg)
    grid = grid_arg
    str = structure_arg
+end
 
-   -- Set the initial player position.
-   entities.player = {
-      pos = { 1, 1, 1 },
-      dir = grid.dirs.h,
-      health = 2
-   }
+function entities.spawn(level)
+   if level == 3 then -- Hidden test level (should be 0, not 3 in the end) TODO
 
-   -- Manually populate hazards, for now.
-   entities.hazards = {
-
-      spinners = {
-         {
-            pos = { 4, -2, 2 },
-            dir = grid.dirs.h,
-            sign = 1
-         },
-         {
-            pos = { 3, 1, 0 },
-            dir = grid.dirs.h,
-            sign = -1
-         },
-         {
-            pos = { 5, 0, -1 },
-            dir = grid.dirs.h,
-            sign = 1
-         },
-         {
-            pos = { 3, -3, 4 },
-            dir = grid.dirs.f,
-            sign = 1
-         }
-      },
-
-      walkers = {
-         {
-            pos = { 5, -1, -1 },
-            avoid = grid.dirs.h,
-            sign = -1
-         },
-         {
-            pos = { 3, -1, 1 },
-            avoid = grid.dirs.f,
-            sign = 1
-         }
+      -- Set the initial player position.
+      entities.player = {
+         pos = { 1, 1, 1 },
+         dir = grid.dirs.h,
+         health = 2
       }
 
-   }
+      -- Manually populate hazards, for now.
+      entities.hazards = {
+
+         spinners = {
+            {
+               pos = { 4, -2, 2 },
+               dir = grid.dirs.h,
+               sign = 1
+            },
+            {
+               pos = { 3, 1, 0 },
+               dir = grid.dirs.h,
+               sign = -1
+            },
+            {
+               pos = { 5, 0, -1 },
+               dir = grid.dirs.h,
+               sign = 1
+            },
+            {
+               pos = { 3, -3, 4 },
+               dir = grid.dirs.f,
+               sign = 1
+            }
+         },
+
+         walkers = {
+            {
+               pos = { 5, -1, -1 },
+               avoid = grid.dirs.h,
+               sign = -1
+            },
+            {
+               pos = { 3, -1, 1 },
+               avoid = grid.dirs.f,
+               sign = 1
+            }
+         }
+
+      }
+
+   elseif level == 1 then
+
+      -- Set the initial player position.
+      entities.player = {
+         pos = { 2, 0, 1 },
+         dir = grid.dirs.h,
+         health = 1
+      }
+
+      entities.hazards = {
+
+         spinners = {
+            {
+               pos = { 4, -3, 2 },
+               dir = grid.dirs.b,
+               sign = -1
+            },
+            {
+               pos = { 3, -1, 1 },
+               dir = grid.dirs.b,
+               sign = 1
+            },
+         },
+
+         walkers = {}
+
+      }
+
+   elseif level == 2 then
+
+      -- Set the initial player position.
+      entities.player = {
+         pos = { 1, 1, 1 },
+         dir = grid.dirs.h,
+         health = 1
+      }
+
+      entities.hazards = {
+
+         spinners = {},
+
+         walkers = {
+            {
+               pos = { 5, -1, 0 },
+               avoid = grid.dirs.f,
+               sign = -1
+            },
+            {
+               pos = { 2, -2, 3 },
+               avoid = grid.dirs.f,
+               sign = 1
+            }
+         }
+
+      }
+
+   elseif level == 3 then
+
+   -- Set the initial player position.
+      entities.player = {
+         pos = { 1, 1, 1 },
+         dir = grid.dirs.h,
+         health = 2
+      }
+
+      entities.hazards = {
+
+         spinners = {},
+
+         walkers = {}
+
+      }
+
+   elseif level == 4 then
+
+      -- Set the initial player position.
+      entities.player = {
+         pos = { 1, 1, 1 },
+         dir = grid.dirs.h,
+         health = 2
+      }
+
+      entities.hazards = {
+
+         spinners = {},
+
+         walkers = {}
+
+      }
+
+   elseif level == 5 then
+
+      -- Set the initial player position.
+      entities.player = {
+         pos = { 1, 1, 1 },
+         dir = grid.dirs.h,
+         health = 2
+      }
+
+      entities.hazards = {
+
+         spinners = {},
+
+         hazards = {}
+
+      }
+
+   end
 end
 
 -- Returns true if the player is at the triangle `triord`.
