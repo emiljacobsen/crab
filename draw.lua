@@ -242,10 +242,24 @@ end
 
 -- Draw the arena.
 function draw.arena()
+
    gfx.setColor(0.6, 0.6, 0.6)
    local triangles = arena.get_all_triangle_vertices()
+
    for _, vertices in pairs(triangles) do
       gfx.polygon("line", vertices)
+   end
+
+   local border_pairs = arena.get_borders()
+   local cs = {
+      { 1, 0, 0 },
+      { 0, 1, 0 },
+      { 0, 0, 1 }
+   }
+   for j = 1, 3 do
+      gfx.setColor(cs[j][1], cs[j][2], cs[j][3])
+      gfx.line(border_pairs[j][1])
+      gfx.line(border_pairs[j][2])
    end
 end
 

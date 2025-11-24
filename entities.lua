@@ -198,20 +198,18 @@ end
 -- The latter is true when the hazard tried to move into the player.
 local function try_move_hazard(hazard, type)
    local new_pos, new_dir = entities.hazard_new_pos(hazard, type)
-   if check_player(new_pos) then
+
+   if str.check_obstacle(new_pos)
+      or str.check_wall(hazard.pos, new_pos)
+   then
+      return false, false, new_pos, new_dir
+   elseif check_player(new_pos) then
       eff3:play()
       SCREEN_SHAKE = true
       SCREEN_SHAKE_TIME = love.timer.getTime()
       return false, true, new_pos, new_dir
-   end
-
-   if not str.check_obstacle(new_pos)
-      and not str.check_wall(hazard.pos, new_pos)
-      and not check_player(new_pos)
-   then
-      return true, false, new_pos, new_dir
    else
-      return false, false, new_pos, new_dir
+      return true, false, new_pos, new_dir
    end
 end
 

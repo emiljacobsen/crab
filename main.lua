@@ -119,6 +119,7 @@ function love.load()
    eff3 = love.audio.newSource("sounds/eff3.mp3", "static")
    woo1 = love.audio.newSource("sounds/woo1.mp3", "static")
    woo2 = love.audio.newSource("sounds/woo2.mp3", "static")
+   woo2:setVolume(0.2)
 
 end
 

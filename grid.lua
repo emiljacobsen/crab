@@ -56,6 +56,14 @@ function grid.get_b(h, f, type)
     return type - h - f
 end
 
+function grid.get_f(h, b, type)
+    return type - h - b
+end
+
+function grid.get_h(f, b, type)
+    return type - b - f
+end
+
 -- Check if a tri-ordinate `h, f, b` is valid.
 -- A triangle is uniquely determined by `(h, f, h+f+b)`.
 -- TODO: consider not exporting this.
@@ -230,6 +238,55 @@ function grid.get_all_triangles()
    -- )
 
    return triords
+end
+
+-- Returns an array
+-- { {dir, { { triord1, triord2 }, { triod1', triord2' } } }, ... }
+function grid.get_borders()
+   local borders = {}
+   local triord1, triord2 = {}, {}
+   local border_pair
+
+   -- h borders
+   border_pair = {}
+
+   triord1 = { h_lo, f_hi, grid.get_b(h_lo, f_hi, grid.up) }
+   triord2 = { h_lo, grid.get_f(h_lo, b_hi, grid.up), b_hi }
+   border_pair[1] = { triord1, triord2 }
+
+   triord1 = { h_hi, grid.get_f(h_hi, b_lo, grid.down), b_lo }
+   triord2 = { h_hi, f_lo, grid.get_b(h_hi, f_lo, grid.down) }
+   border_pair[2] = { triord1, triord2 }
+
+   borders[#borders+1] = { grid.dirs.h, border_pair }
+
+   -- f borders
+   border_pair = {}
+
+   triord1 = { grid.get_h(f_hi, b_lo, grid.down), f_hi, b_lo }
+   triord2 = { h_lo, f_hi, grid.get_b(h_lo, f_hi, grid.down) }
+   border_pair[1] = { triord1, triord2 }
+
+   triord1 = { h_hi, f_lo, grid.get_b(h_hi, f_lo, grid.up) }
+   triord2 = { grid.get_h(f_lo, b_hi, grid.up), f_lo, b_hi }
+   border_pair[2] = { triord1, triord2 }
+
+   borders[#borders+1] = { grid.dirs.f, border_pair }
+
+   -- b borders
+   border_pair = {}
+
+   triord1 = { grid.get_h(f_lo, b_hi, grid.down), f_lo, b_hi }
+   triord2 = { h_lo, grid.get_f(h_lo, b_hi, grid.down), b_hi }
+   border_pair[1] = { triord1, triord2 }
+
+   triord1 = { h_hi, grid.get_f(h_hi, b_lo, grid.up), b_lo }
+   triord2 = { grid.get_h(f_hi, b_lo, grid.up), f_hi, b_lo }
+   border_pair[2] = { triord1, triord2 }
+
+   borders[#borders+1] = { grid.dirs.b, border_pair }
+
+   return borders
 end
 
 return grid

@@ -334,4 +334,34 @@ end
 
 -- TODO: get lines
 
+-- Returns an array
+-- { { { x1, y1, x2, y2 }, {x1', y1', x2', y2'} }, ... }
+function arena.get_borders()
+   local line_pairs = {}
+   local border_pairs = grid.get_borders()
+   local pt1, pt2
+   local line_pair = {}
+   local t
+
+   for key, border_pair in pairs(border_pairs) do
+      line_pair = {}
+
+      t = border_pair[2][1][1]
+      pt1 = arena.get_vertex(t[1], t[2], t[3], border_pair[1])
+      t = border_pair[2][1][2]
+      pt2 = arena.get_vertex(t[1], t[2], t[3], border_pair[1])
+      line_pair[1] = { pt1[1], pt1[2], pt2[1], pt2[2] }
+
+      t = border_pair[2][2][1]
+      pt1 = arena.get_vertex(t[1], t[2], t[3], border_pair[1])
+      t = border_pair[2][2][2]
+      pt2 = arena.get_vertex(t[1], t[2], t[3], border_pair[1])
+      line_pair[2] = { pt1[1], pt1[2], pt2[1], pt2[2] }
+
+      line_pairs[key] = line_pair
+   end
+
+   return line_pairs
+end
+
 return arena
