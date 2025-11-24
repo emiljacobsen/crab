@@ -66,6 +66,9 @@ local function start_play()
    ent.setup(grid, str)
 end
 
+SCREEN_SHAKE = false
+SCREEN_SHAKE_TIME = nil
+
 -- Runs on startup: 
 function love.load()
 
@@ -259,7 +262,20 @@ function love.mousepressed(x, y, button, istouch, presses)
 end
 
 function love.draw()
+   if SCREEN_SHAKE then
+      if love.timer.getTime() - SCREEN_SHAKE_TIME >= 0.1 then
+         SCREEN_SHAKE = false
+      else
+         local x = 50 * math.random() - 25
+         local y = 50 * math.random() - 25
+         local s = 0.75 + 1.5 * math.random()
+         gfx.translate(x, y)
+         gfx.scale(s)
+      end
+   end
+
    if state == states.playing then
+
 
       -- Highlight the current hexagon
       if not disable_highlight then

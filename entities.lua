@@ -200,6 +200,8 @@ local function try_move_hazard(hazard, type)
    local new_pos, new_dir = entities.hazard_new_pos(hazard, type)
    if check_player(new_pos) then
       eff3:play()
+      SCREEN_SHAKE = true
+      SCREEN_SHAKE_TIME = love.timer.getTime()
       return false, true, new_pos, new_dir
    end
 
